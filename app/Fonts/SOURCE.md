@@ -12,6 +12,11 @@ JetBrains Mono repository:
 
 https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt
 
+The private 1Unix build follows Blink's built-in iPhone style by selecting
+this family at 10 points. hterm uses a private CSS family alias resolved from
+the fonts' exact PostScript names so WebKit cannot silently substitute a
+different monospace face.
+
 SHA-256:
 
 - `JetBrainsMono-Regular.ttf`: `50e1dcb40298fcfcc21a1ef3cbee9fe9e82709c48ad30ce617472c06a3bd9436`

@@ -18,6 +18,7 @@ static NSString *const kPreferenceHideExtraKeysWithExternalKeyboardKey = @"Hide 
 static NSString *const kPreferenceOverrideControlSpaceKey = @"Override Control Space";
 static NSString *const kPreferenceFontFamilyKey = @"Font Family";
 static NSString *const kPreferenceFontSizeKey = @"Font Size";
+static NSString *const kBlinkFontDefaultsMigrationKey = @"1Unix Blink Font Defaults v1";
 static NSString *const kPreferenceThemeKey = @"ModernTheme";
 static NSString *const kPreferenceDisableDimmingKey = @"Disable Dimming";
 static NSString *const kPreferenceKeepKeyboardHiddenInMouseModeKey = @"Keep Keyboard Hidden in Mouse Mode";
@@ -155,7 +156,7 @@ bool (*remove_user_default)(const char *name);
     if (self) {
         _defaults = [NSUserDefaults standardUserDefaults];
         [_defaults registerDefaults:@{
-            kPreferenceFontSizeKey: @(12),
+            kPreferenceFontSizeKey: @(10),
             kPreferenceCapsLockMappingKey: @(CapsLockMapControl),
             kPreferenceOptionMappingKey: @(OptionMapNone),
             kPreferenceBacktickEscapeKey: @(NO),
@@ -175,6 +176,11 @@ bool (*remove_user_default)(const char *name);
         [_defaults registerDefaults:@{
             kPreferenceFontFamilyKey: kDefaultFontName,
         }];
+        if (![_defaults boolForKey:kBlinkFontDefaultsMigrationKey]) {
+            [_defaults setObject:kDefaultFontName forKey:kPreferenceFontFamilyKey];
+            [_defaults setObject:@(10) forKey:kPreferenceFontSizeKey];
+            [_defaults setBool:YES forKey:kBlinkFontDefaultsMigrationKey];
+        }
         get_all_defaults_keys = get_all_defaults_keys_impl;
         get_friendly_name = get_friendly_name_impl;
         get_underlying_name = get_underlying_name_impl;

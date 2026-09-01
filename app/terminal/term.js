@@ -22,6 +22,30 @@ window.onload = async function() {
 };
 
 var termCss = `
+@font-face {
+  font-family: '1Unix JetBrains Mono';
+  src: local('JetBrainsMono-Regular');
+  font-style: normal;
+  font-weight: 400;
+}
+@font-face {
+  font-family: '1Unix JetBrains Mono';
+  src: local('JetBrainsMono-Italic');
+  font-style: italic;
+  font-weight: 400;
+}
+@font-face {
+  font-family: '1Unix JetBrains Mono';
+  src: local('JetBrainsMono-Bold');
+  font-style: normal;
+  font-weight: 700;
+}
+@font-face {
+  font-family: '1Unix JetBrains Mono';
+  src: local('JetBrainsMono-BoldItalic');
+  font-style: italic;
+  font-weight: 700;
+}
 x-screen {
     background: transparent !important;
     overflow: hidden !important;
@@ -148,10 +172,13 @@ hterm.ScrollPort.prototype.syncScrollHeight = function() {
 term.scrollPort_.screen_.addEventListener('scroll', syncScroll);
 
 exports.updateStyle = ({foregroundColor, backgroundColor, fontFamily, fontSize, colorPaletteOverrides, blinkCursor, cursorShape}) => {
+    const resolvedFontFamily = fontFamily == 'JetBrains Mono'
+        ? "'1Unix JetBrains Mono', 'JetBrains Mono', monospace"
+        : fontFamily;
     term.getPrefs().set('background-color', backgroundColor);
     term.getPrefs().set('foreground-color', foregroundColor);
     term.getPrefs().set('cursor-color', foregroundColor);
-    term.getPrefs().set('font-family', fontFamily);
+    term.getPrefs().set('font-family', resolvedFontFamily);
     term.getPrefs().set('font-size', fontSize);
     term.getPrefs().set('color-palette-overrides', colorPaletteOverrides);
     term.getPrefs().set('cursor-blink', blinkCursor);
