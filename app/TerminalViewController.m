@@ -23,6 +23,8 @@
 @interface TerminalViewController () <UIGestureRecognizerDelegate>
 
 @property UITapGestureRecognizer *tapRecognizer;
+@property UIPinchGestureRecognizer *fontSizePinchRecognizer;
+@property CGFloat fontSizeBeforePinch;
 @property (weak, nonatomic) IBOutlet TerminalView *termView;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *bottomConstraint;
 
@@ -77,6 +79,12 @@
 
     self.terminal = self.terminal;
     [self.termView becomeFirstResponder];
+
+    self.fontSizePinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self
+                                                                            action:@selector(changeFontSizeWithPinch:)];
+    self.fontSizePinchRecognizer.cancelsTouchesInView = NO;
+    self.fontSizePinchRecognizer.delegate = self;
+    [self.termView addGestureRecognizer:self.fontSizePinchRecognizer];
 
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserver:self
@@ -548,6 +556,33 @@
 }
 - (void)resetFontSize:(UIKeyCommand *)command {
     self.termView.overrideFontSize = 0;
+}
+
+- (void)changeFontSizeWithPinch:(UIPinchGestureRecognizer *)pinch {
+    if (pinch.state == UIGestureRecognizerStateBegan) {
+        self.fontSizeBeforePinch = self.termView.effectiveFontSize;
+    }
+
+    if (pinch.state == UIGestureRecognizerStateChanged ||
+        pinch.state == UIGestureRecognizerStateEnded) {
+        CGFloat fontSize = round(self.fontSizeBeforePinch * pinch.scale);
+        fontSize = MIN(72, MAX(6, fontSize));
+        if (fontSize != self.termView.effectiveFontSize) {
+            self.termView.overrideFontSize = fontSize;
+        }
+    }
+
+    if (pinch.state == UIGestureRecognizerStateEnded ||
+        pinch.state == UIGestureRecognizerStateCancelled ||
+        pinch.state == UIGestureRecognizerStateFailed) {
+        self.fontSizeBeforePinch = 0;
+    }
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+        shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    return gestureRecognizer == self.fontSizePinchRecognizer ||
+           otherGestureRecognizer == self.fontSizePinchRecognizer;
 }
 
 - (NSArray<UIKeyCommand *> *)keyCommands {

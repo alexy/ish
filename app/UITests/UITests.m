@@ -16,4 +16,14 @@
     self.continueAfterFailure = NO;
 }
 
+- (void)testTerminalPinchGesture {
+    XCUIApplication *app = [XCUIApplication new];
+    [app launch];
+
+    XCUIElement *window = app.windows.firstMatch;
+    XCTAssertTrue([window waitForExistenceWithTimeout:10]);
+    [window pinchWithScale:1.5 velocity:1];
+    [window pinchWithScale:0.75 velocity:-1];
+}
+
 @end

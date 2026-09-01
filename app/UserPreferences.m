@@ -19,6 +19,7 @@ static NSString *const kPreferenceOverrideControlSpaceKey = @"Override Control S
 static NSString *const kPreferenceFontFamilyKey = @"Font Family";
 static NSString *const kPreferenceFontSizeKey = @"Font Size";
 static NSString *const kBlinkFontDefaultsMigrationKey = @"1Unix Blink Font Defaults v1";
+static NSString *const kPragmataFontMigrationKey = @"1Unix Pragmata Font v1";
 static NSString *const kPreferenceThemeKey = @"ModernTheme";
 static NSString *const kPreferenceDisableDimmingKey = @"Disable Dimming";
 static NSString *const kPreferenceKeepKeyboardHiddenInMouseModeKey = @"Keep Keyboard Hidden in Mouse Mode";
@@ -37,7 +38,12 @@ NSDictionary<NSString *, NSString *> *friendlyPreferenceReverseMapping;
 NSDictionary<NSString *, NSString *> *kvoProperties;
 
 static NSString *const kSystemMonospacedFontName = @"ui-monospace";
-static NSString *const kDefaultFontName = @"JetBrains Mono";
+static NSString *const kFallbackFontName = @"JetBrains Mono";
+static NSString *const kPragmataProFontName = @"PragmataPro";
+
+static NSString *defaultFontName(void) {
+    return [UIFont fontWithName:kPragmataProFontName size:10] ? kPragmataProFontName : kFallbackFontName;
+}
 
 @interface UserPreferences () {
     BOOL _hostnameIsOverridden;
@@ -174,12 +180,18 @@ bool (*remove_user_default)(const char *name);
             kHostnameOverrideKey: UIDevice.currentDevice.name,
         }];
         [_defaults registerDefaults:@{
-            kPreferenceFontFamilyKey: kDefaultFontName,
+            kPreferenceFontFamilyKey: defaultFontName(),
         }];
         if (![_defaults boolForKey:kBlinkFontDefaultsMigrationKey]) {
-            [_defaults setObject:kDefaultFontName forKey:kPreferenceFontFamilyKey];
+            [_defaults setObject:defaultFontName() forKey:kPreferenceFontFamilyKey];
             [_defaults setObject:@(10) forKey:kPreferenceFontSizeKey];
             [_defaults setBool:YES forKey:kBlinkFontDefaultsMigrationKey];
+        }
+        if ([UIFont fontWithName:kPragmataProFontName size:10] &&
+            ![_defaults boolForKey:kPragmataFontMigrationKey]) {
+            [_defaults setObject:kPragmataProFontName forKey:kPreferenceFontFamilyKey];
+            [_defaults setObject:@(10) forKey:kPreferenceFontSizeKey];
+            [_defaults setBool:YES forKey:kPragmataFontMigrationKey];
         }
         get_all_defaults_keys = get_all_defaults_keys_impl;
         get_friendly_name = get_friendly_name_impl;

@@ -21,7 +21,9 @@
     NSMutableArray *families = [NSMutableArray new];
     for (NSString *family in UIFont.familyNames) {
         UIFont *font = [UIFont fontWithName:family size:1];
-        if (font.fontDescriptor.symbolicTraits & UIFontDescriptorTraitMonoSpace) {
+        BOOL isMonospaced = font.fontDescriptor.symbolicTraits & UIFontDescriptorTraitMonoSpace;
+        BOOL isPragmataPro = [family caseInsensitiveCompare:@"PragmataPro"] == NSOrderedSame;
+        if (isMonospaced || isPragmataPro) {
             [families addObject:family];
         }
     }

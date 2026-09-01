@@ -5,17 +5,20 @@ Shell at commit `a90b4423c8b7a86770c24a7eaa6c13b0a5904b18`:
 
 https://github.com/blinksh/blink/tree/a90b4423c8b7a86770c24a7eaa6c13b0a5904b18/Resources/Fonts
 
-Blink declares JetBrains Mono as its default app font. The typeface is
-copyright JetBrains s.r.o. and distributed under the SIL Open Font License
-1.1. `OFL.txt` is an unmodified copy of the license from the official
-JetBrains Mono repository:
+Blink's public source build declares JetBrains Mono as its app font. The
+typeface is copyright JetBrains s.r.o. and distributed under the SIL Open
+Font License 1.1. `OFL.txt` is an unmodified copy of the license from the
+official JetBrains Mono repository:
 
 https://github.com/JetBrains/JetBrainsMono/blob/master/OFL.txt
 
-The private 1Unix build follows Blink's built-in iPhone style by selecting
-this family at 10 points. hterm uses a private CSS family alias resolved from
-the fonts' exact PostScript names so WebKit cannot silently substitute a
-different monospace face.
+The public 1Unix build selects this family at 10 points. hterm uses a private
+CSS family alias resolved from the fonts' exact PostScript names so WebKit
+cannot silently substitute a different monospace face.
+
+1Unix also recognizes PragmataPro when a licensed copy is present in a private
+build. PragmataPro is not distributed in this public repository; builds
+without it continue to use JetBrains Mono.
 
 SHA-256:
 

@@ -23,6 +23,30 @@ window.onload = async function() {
 
 var termCss = `
 @font-face {
+  font-family: '1Unix PragmataPro';
+  src: local('PragmataPro');
+  font-style: normal;
+  font-weight: 400;
+}
+@font-face {
+  font-family: '1Unix PragmataPro';
+  src: local('PragmataPro-Italic');
+  font-style: italic;
+  font-weight: 400;
+}
+@font-face {
+  font-family: '1Unix PragmataPro';
+  src: local('PragmataPro-Bold');
+  font-style: normal;
+  font-weight: 700;
+}
+@font-face {
+  font-family: '1Unix PragmataPro';
+  src: local('PragmataPro-Bold-Italic');
+  font-style: italic;
+  font-weight: 700;
+}
+@font-face {
   font-family: '1Unix JetBrains Mono';
   src: local('JetBrainsMono-Regular');
   font-style: normal;
@@ -172,9 +196,11 @@ hterm.ScrollPort.prototype.syncScrollHeight = function() {
 term.scrollPort_.screen_.addEventListener('scroll', syncScroll);
 
 exports.updateStyle = ({foregroundColor, backgroundColor, fontFamily, fontSize, colorPaletteOverrides, blinkCursor, cursorShape}) => {
-    const resolvedFontFamily = fontFamily == 'JetBrains Mono'
-        ? "'1Unix JetBrains Mono', 'JetBrains Mono', monospace"
-        : fontFamily;
+    const fontAliases = {
+        'JetBrains Mono': "'1Unix JetBrains Mono', 'JetBrains Mono', monospace",
+        'PragmataPro': "'1Unix PragmataPro', 'PragmataPro', monospace",
+    };
+    const resolvedFontFamily = fontAliases[fontFamily] || fontFamily;
     term.getPrefs().set('background-color', backgroundColor);
     term.getPrefs().set('foreground-color', foregroundColor);
     term.getPrefs().set('cursor-color', foregroundColor);
