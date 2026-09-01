@@ -24,49 +24,49 @@ window.onload = async function() {
 var termCss = `
 @font-face {
   font-family: '1Unix PragmataPro';
-  src: local('PragmataPro');
+  src: url('PragmataPro.ttf') format('truetype'), local('PragmataPro');
   font-style: normal;
   font-weight: 400;
 }
 @font-face {
   font-family: '1Unix PragmataPro';
-  src: local('PragmataPro-Italic');
+  src: url('PragmataPro-I.ttf') format('truetype'), local('PragmataPro-Italic');
   font-style: italic;
   font-weight: 400;
 }
 @font-face {
   font-family: '1Unix PragmataPro';
-  src: local('PragmataPro-Bold');
+  src: url('PragmataPro-B.ttf') format('truetype'), local('PragmataPro-Bold');
   font-style: normal;
   font-weight: 700;
 }
 @font-face {
   font-family: '1Unix PragmataPro';
-  src: local('PragmataPro-Bold-Italic');
+  src: url('PragmataPro-Z.ttf') format('truetype'), local('PragmataPro-Bold-Italic');
   font-style: italic;
   font-weight: 700;
 }
 @font-face {
   font-family: '1Unix JetBrains Mono';
-  src: local('JetBrainsMono-Regular');
+  src: url('JetBrainsMono-Regular.ttf') format('truetype'), local('JetBrainsMono-Regular');
   font-style: normal;
   font-weight: 400;
 }
 @font-face {
   font-family: '1Unix JetBrains Mono';
-  src: local('JetBrainsMono-Italic');
+  src: url('JetBrainsMono-Italic.ttf') format('truetype'), local('JetBrainsMono-Italic');
   font-style: italic;
   font-weight: 400;
 }
 @font-face {
   font-family: '1Unix JetBrains Mono';
-  src: local('JetBrainsMono-Bold');
+  src: url('JetBrainsMono-Bold.ttf') format('truetype'), local('JetBrainsMono-Bold');
   font-style: normal;
   font-weight: 700;
 }
 @font-face {
   font-family: '1Unix JetBrains Mono';
-  src: local('JetBrainsMono-BoldItalic');
+  src: url('JetBrainsMono-Bold-Italic.ttf') format('truetype'), local('JetBrainsMono-BoldItalic');
   font-style: italic;
   font-weight: 700;
 }
