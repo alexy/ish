@@ -91,7 +91,6 @@ term.scrollPort_.screen_.addEventListener('blur', (e) => {
 const terminalMouseReporting = () =>
     term.vt.mouseReport != term.vt.MOUSE_REPORT_DISABLED;
 term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
-    // In terminal mouse mode, a two-finger tap explicitly returns keyboard focus.
     if (terminalMouseReporting() && e.touches.length == 2) {
         e.preventDefault();
         e.stopImmediatePropagation();

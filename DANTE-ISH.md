@@ -17,10 +17,10 @@ provision it. System and bundled terminal fonts remain available.
 ## Touch Contract
 
 The **Keep Keyboard Hidden** switch in iSH Settings controls terminal taps while
-a program has enabled VT mouse reporting. It defaults to on in the 1Unix build.
-When enabled, a one-finger tap remains an application mouse event and does not
-summon a hidden software keyboard. This keeps Emacs Reader controls, dictionary
-words, and menu items usable in full-screen iSH.
+a program has enabled VT mouse reporting. Turn it on once after installing
+1Unix. When enabled, a one-finger tap remains an application mouse event and
+does not summon a hidden software keyboard. This keeps Emacs Reader controls,
+dictionary words, and menu items usable in full-screen iSH.
 
 A two-finger tap in terminal mouse mode explicitly restores keyboard focus.
 When terminal mouse reporting is disabled, an ordinary tap continues to focus

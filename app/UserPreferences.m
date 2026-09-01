@@ -161,7 +161,7 @@ bool (*remove_user_default)(const char *name);
             kPreferenceHideExtraKeysWithExternalKeyboardKey: @(NO),
             kPreferenceOverrideControlSpaceKey: @(NO),
             kPreferenceDisableDimmingKey: @(NO),
-            kPreferenceKeepKeyboardHiddenInMouseModeKey: @(YES),
+            kPreferenceKeepKeyboardHiddenInMouseModeKey: @(NO),
             kPreferenceLaunchCommandKey: @[@"/bin/login", @"-f", @"root"],
             kPreferenceBootCommandKey: @[@"/sbin/init"],
             kPreferenceBlinkCursorKey: @(NO),
