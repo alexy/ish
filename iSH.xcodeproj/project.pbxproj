@@ -240,6 +240,16 @@
 		BBEF1994268066D1001225BD /* term.js in Resources */ = {isa = PBXBuildFile; fileRef = BB4A539C1FAA490C00A72ACE /* term.js */; };
 		BBEF1995268066D1001225BD /* sprite64.png in Resources */ = {isa = PBXBuildFile; fileRef = BB0B880E2589662200208600 /* sprite64.png */; };
 		BBEF1996268066D1001225BD /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = BB1B9A4223A5E96900414052 /* icon.png */; };
+		F10000010000000000000001 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000001 /* JetBrainsMono-Regular.ttf */; };
+		F10000010000000000000002 /* JetBrainsMono-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000002 /* JetBrainsMono-Italic.ttf */; };
+		F10000010000000000000003 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000003 /* JetBrainsMono-Bold.ttf */; };
+		F10000010000000000000004 /* JetBrainsMono-Bold-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000004 /* JetBrainsMono-Bold-Italic.ttf */; };
+		F10000010000000000000005 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000005 /* OFL.txt */; };
+		F10000020000000000000001 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000001 /* JetBrainsMono-Regular.ttf */; };
+		F10000020000000000000002 /* JetBrainsMono-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000002 /* JetBrainsMono-Italic.ttf */; };
+		F10000020000000000000003 /* JetBrainsMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000003 /* JetBrainsMono-Bold.ttf */; };
+		F10000020000000000000004 /* JetBrainsMono-Bold-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000004 /* JetBrainsMono-Bold-Italic.ttf */; };
+		F10000020000000000000005 /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = F10000100000000000000005 /* OFL.txt */; };
 		BBF06F6C2CC4C134009F5DB5 /* fchdir.c in Sources */ = {isa = PBXBuildFile; fileRef = BB0DF6F22CC4B01000EFECAE /* fchdir.c */; };
 		BBFB2C7E259026C200545EAB /* libish_emu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BBFB2C5B2590257E00545EAB /* libish_emu.a */; };
 		BBFB2CEC2590296B00545EAB /* libish_emu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BBFB2C5B2590257E00545EAB /* libish_emu.a */; };
@@ -750,6 +760,11 @@
 		BBFB557B215878C600DFE6DE /* UIApplication+OpenURL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIApplication+OpenURL.m"; sourceTree = "<group>"; };
 		BBFB557E21587B6800DFE6DE /* ArrowBarButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ArrowBarButton.h; sourceTree = "<group>"; };
 		BBFB557F21587B6800DFE6DE /* ArrowBarButton.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ArrowBarButton.m; sourceTree = "<group>"; };
+		F10000100000000000000001 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
+		F10000100000000000000002 /* JetBrainsMono-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Italic.ttf"; sourceTree = "<group>"; };
+		F10000100000000000000003 /* JetBrainsMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Bold.ttf"; sourceTree = "<group>"; };
+		F10000100000000000000004 /* JetBrainsMono-Bold-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Bold-Italic.ttf"; sourceTree = "<group>"; };
+		F10000100000000000000005 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1047,6 +1062,7 @@
 		BB792B521F96D90D00FFB7A4 /* app */ = {
 			isa = PBXGroup;
 			children = (
+				F10000200000000000000001 /* Fonts */,
 				BB792B531F96D90D00FFB7A4 /* AppDelegate.h */,
 				BB792B541F96D90D00FFB7A4 /* AppDelegate.m */,
 				BB565EA52734F22D00C93EAE /* CurrentRoot.h */,
@@ -1081,6 +1097,18 @@
 				BB41591D255EF9E300E0950C /* UITests */,
 			);
 			path = app;
+			sourceTree = "<group>";
+		};
+		F10000200000000000000001 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				F10000100000000000000001 /* JetBrainsMono-Regular.ttf */,
+				F10000100000000000000002 /* JetBrainsMono-Italic.ttf */,
+				F10000100000000000000003 /* JetBrainsMono-Bold.ttf */,
+				F10000100000000000000004 /* JetBrainsMono-Bold-Italic.ttf */,
+				F10000100000000000000005 /* OFL.txt */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		BB792B7D1F96E32B00FFB7A4 /* Frameworks */ = {
@@ -1746,6 +1774,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F10000010000000000000001 /* JetBrainsMono-Regular.ttf in Resources */,
+				F10000010000000000000002 /* JetBrainsMono-Italic.ttf in Resources */,
+				F10000010000000000000003 /* JetBrainsMono-Bold.ttf in Resources */,
+				F10000010000000000000004 /* JetBrainsMono-Bold-Italic.ttf in Resources */,
+				F10000010000000000000005 /* OFL.txt in Resources */,
 				BB38599627BCEE6B000A1082 /* idollarhash.png in Resources */,
 				BB3859A227BCEE6B000A1082 /* dollarblock2.png in Resources */,
 				BB3859A727BCEE6B000A1082 /* uninspired.png in Resources */,
@@ -1792,6 +1825,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F10000020000000000000001 /* JetBrainsMono-Regular.ttf in Resources */,
+				F10000020000000000000002 /* JetBrainsMono-Italic.ttf in Resources */,
+				F10000020000000000000003 /* JetBrainsMono-Bold.ttf in Resources */,
+				F10000020000000000000004 /* JetBrainsMono-Bold-Italic.ttf in Resources */,
+				F10000020000000000000005 /* OFL.txt in Resources */,
 				BBEF197D268066D1001225BD /* 3d.png in Resources */,
 				BBEF197E268066D1001225BD /* colontildehash.png in Resources */,
 				BBEF197F268066D1001225BD /* metal.png in Resources */,

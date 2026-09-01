@@ -31,6 +31,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *escapeKey;
 @property (strong, nonatomic) IBOutletCollection(id) NSArray *barButtons;
 @property (strong, nonatomic) IBOutletCollection(id) NSArray *barControls;
+@property NSArray<BarButton *> *individualArrowButtons;
 
 @property (weak, nonatomic) IBOutlet UIInputView *barView;
 @property (weak, nonatomic) IBOutlet UIStackView *bar;
@@ -51,6 +52,9 @@
 
 @property BOOL ignoreKeyboardMotion;
 @property (nonatomic) BOOL hasExternalKeyboard;
+
+- (void)addIndividualArrowButtons;
+- (void)pressArrowDirection:(ArrowDirection)direction;
 
 @end
 
@@ -88,7 +92,7 @@
                    name:FsUpdatedNotification
                  object:nil];
 
-
+    [self addIndividualArrowButtons];
     [self _updateStyleFromPreferences:NO];
     
     if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
@@ -408,18 +412,45 @@
 
 - (void)resizeBar {
     CGSize bar = self.barView.bounds.size;
+    CGFloat horizontal;
+    CGFloat vertical;
+    CGFloat preferredButtonWidth;
+
     // set sizing parameters on bar
     // numbers stolen from iVim and modified somewhat
     if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
-        // phone
-        [self setBarHorizontalPadding:6 verticalPadding:6 buttonWidth:32];
+        horizontal = 6;
+        vertical = 6;
+        preferredButtonWidth = 32;
+        self.bar.spacing = 4;
     } else if (bar.width >= 450) {
-        // wide ipad
-        [self setBarHorizontalPadding:15 verticalPadding:8 buttonWidth:43];
+        horizontal = 15;
+        vertical = 8;
+        preferredButtonWidth = 43;
+        self.bar.spacing = 6;
     } else {
-        // narrow ipad (slide over)
-        [self setBarHorizontalPadding:10 verticalPadding:8 buttonWidth:36];
+        horizontal = 10;
+        vertical = 8;
+        preferredButtonWidth = 36;
+        self.bar.spacing = 6;
     }
+
+    NSUInteger fixedViewCount = 0;
+    for (UIView *view in self.bar.arrangedSubviews) {
+        if ([view contentHuggingPriorityForAxis:UILayoutConstraintAxisHorizontal] > 100) {
+            fixedViewCount++;
+        }
+    }
+    CGFloat safeWidth = self.barView.safeAreaLayoutGuide.layoutFrame.size.width;
+    if (safeWidth <= 0) {
+        safeWidth = bar.width;
+    }
+    CGFloat gaps = MAX((NSInteger) self.bar.arrangedSubviews.count - 1, 0) * self.bar.spacing;
+    CGFloat availableWidth = safeWidth - 2 * horizontal - gaps;
+    CGFloat fittedButtonWidth = fixedViewCount ? floor(availableWidth / fixedViewCount) : preferredButtonWidth;
+    CGFloat buttonWidth = MIN(preferredButtonWidth, MAX(22, fittedButtonWidth));
+    [self setBarHorizontalPadding:horizontal verticalPadding:vertical buttonWidth:buttonWidth];
+
     [UIView performWithoutAnimation:^{
         [self.barView layoutIfNeeded];
     }];
@@ -444,15 +475,61 @@
 - (IBAction)pressControl:(id)sender {
     self.controlKey.selected = !self.controlKey.selected;
 }
-    
-- (IBAction)pressArrow:(ArrowBarButton *)sender {
-    switch (sender.direction) {
+
+- (void)addIndividualArrowButtons {
+    NSUInteger arrowPadIndex = [self.bar.arrangedSubviews indexOfObjectPassingTest:^BOOL(UIView *view, NSUInteger index, BOOL *stop) {
+        return [view isKindOfClass:ArrowBarButton.class];
+    }];
+    if (arrowPadIndex == NSNotFound) {
+        return;
+    }
+
+    NSArray<NSNumber *> *directions = @[@(ArrowLeft), @(ArrowUp), @(ArrowDown), @(ArrowRight)];
+    NSArray<NSString *> *symbols = @[@"arrow.left", @"arrow.up", @"arrow.down", @"arrow.right"];
+    NSArray<NSString *> *titles = @[@"\u2190", @"\u2191", @"\u2193", @"\u2192"];
+    NSArray<NSString *> *labels = @[@"Left Arrow", @"Up Arrow", @"Down Arrow", @"Right Arrow"];
+    NSMutableArray<BarButton *> *buttons = [NSMutableArray arrayWithCapacity:directions.count];
+
+    for (NSUInteger index = 0; index < directions.count; index++) {
+        BarButton *button = [[BarButton alloc] initWithFrame:CGRectZero];
+        button.translatesAutoresizingMaskIntoConstraints = NO;
+        button.secondary = YES;
+        button.tag = directions[index].unsignedIntegerValue;
+        button.accessibilityLabel = labels[index];
+        [button addTarget:self action:@selector(pressIndividualArrow:) forControlEvents:UIControlEventPrimaryActionTriggered];
+        if (@available(iOS 13.0, *)) {
+            UIImageSymbolConfiguration *configuration = [UIImageSymbolConfiguration configurationWithPointSize:14
+                                                                                                         weight:UIImageSymbolWeightSemibold];
+            UIImage *image = [UIImage systemImageNamed:symbols[index] withConfiguration:configuration];
+            [button setImage:image forState:UIControlStateNormal];
+        } else {
+            [button setTitle:titles[index] forState:UIControlStateNormal];
+        }
+        [self.bar insertArrangedSubview:button atIndex:arrowPadIndex + index + 1];
+        [button.widthAnchor constraintEqualToAnchor:self.infoButton.widthAnchor].active = YES;
+        [buttons addObject:button];
+    }
+
+    self.individualArrowButtons = buttons;
+    self.barButtons = [self.barButtons arrayByAddingObjectsFromArray:buttons];
+}
+
+- (void)pressArrowDirection:(ArrowDirection)direction {
+    switch (direction) {
         case ArrowUp: [self pressKey:[self.terminal arrow:'A']]; break;
         case ArrowDown: [self pressKey:[self.terminal arrow:'B']]; break;
         case ArrowLeft: [self pressKey:[self.terminal arrow:'D']]; break;
         case ArrowRight: [self pressKey:[self.terminal arrow:'C']]; break;
         case ArrowNone: break;
     }
+}
+
+- (void)pressIndividualArrow:(BarButton *)sender {
+    [self pressArrowDirection:(ArrowDirection) sender.tag];
+}
+
+- (IBAction)pressArrow:(ArrowBarButton *)sender {
+    [self pressArrowDirection:sender.direction];
 }
 
 - (void)switchTerminal:(UIKeyCommand *)sender {

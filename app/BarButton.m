@@ -14,8 +14,14 @@ extern UIAccessibilityTraits UIAccessibilityTraitToggle;
 
 @implementation BarButton
 
-- (void)awakeFromNib {
-    [super awakeFromNib];
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        [self setup];
+    }
+    return self;
+}
+
+- (void)setup {
     self.layer.cornerRadius = 5;
     self.layer.shadowOffset = CGSizeMake(0, 1);
     self.layer.shadowOpacity = 0.4;
@@ -26,6 +32,11 @@ extern UIAccessibilityTraits UIAccessibilityTraitToggle;
     if (self.toggleable) {
         self.accessibilityTraits |= 0x20000000000000;
     }
+}
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    [self setup];
 }
 
 - (UIColor *)primaryColor {
