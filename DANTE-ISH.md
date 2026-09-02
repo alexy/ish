@@ -33,6 +33,14 @@ tap to the first terminal row. Suppress that compatibility sequence at the
 hterm iframe document in capture phase, because hterm listens on the document
 as well as its screen and cursor.
 
+Emacs `xterm-mouse-mode` requests DECSET 1003 so a TTY popup menu can update
+its active row from pointer movement before accepting the release. The bundled
+hterm 1.91 does not implement 1003. On a touchscreen, map it to hterm's drag
+tracking and emit one movement report at the touch-down cell before the press.
+Without that report, a correctly located press and release still select the
+menu's initial item: **File -> Quit** opens **Find File**, and translation
+choices collapse to **None**.
+
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
 and disables kerning and ligatures so the visible glyphs, text cursor, and
@@ -90,3 +98,8 @@ resetting its filesystem removes or disconnects that state.
 8. Two-finger tap the terminal. The keyboard must appear.
 9. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
    must show it again.
+
+Build 817 passed the physical-device menu check on 2026-09-02: **File ->
+Quit** exited Emacs, **Tr-Eng -> Norton** and **Tr-Rus -> Ilyushin** changed
+their respective translations, the keyboard stayed hidden, and both launches
+kept the bundled PragmataPro rendering crisp.

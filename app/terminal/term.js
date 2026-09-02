@@ -107,6 +107,21 @@ window.exports = {};
 term.io.push();
 term.reset();
 
+// This hterm predates DECSET 1003 (all-motion mouse tracking).  TTY menus in
+// Emacs use that mode to update the active row before accepting a click.  A
+// touchscreen has no hover phase, so treat 1003 as drag tracking and send one
+// synthetic movement at touch-down below.
+const originalSetDECMode = term.vt.setDECMode.bind(term.vt);
+term.vt.setDECMode = function(code, state) {
+    if (parseInt(code, 10) == 1003) {
+        this.mouseReport = state ?
+            this.MOUSE_REPORT_DRAG : this.MOUSE_REPORT_DISABLED;
+        this.terminal.syncMouseStyle();
+        return;
+    }
+    originalSetDECMode(code, state);
+};
+
 let oldProps = {};
 function syncProp(name, value) {
     if (oldProps[name] !== value)
@@ -216,6 +231,10 @@ term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
         rememberTouchPoint(touch);
         e.preventDefault();
         e.stopImmediatePropagation();
+        // TTY popup menus select from their last pointer-movement position.
+        // A tap begins in place, so report that position before the press.
+        term.vt.lastMouseDragResponse_ = null;
+        reportTouchAsMouse('mousemove', terminalTouchPoint, 1);
         reportTouchAsMouse('mousedown', terminalTouchPoint, 1);
         native.focus({mouseReporting: true});
     }
