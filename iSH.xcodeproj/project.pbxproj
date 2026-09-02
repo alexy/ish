@@ -1513,6 +1513,7 @@
 				BB4A53AC1FAA49CA00A72ACE /* Compile JavaScript */,
 				BB792B4E1F96D90D00FFB7A4 /* Resources */,
 				BB88F4A32154760800A341FD /* Embed Foundation Extensions */,
+				F10000300000000000000001 /* Embed Private Fonts */,
 			);
 			buildRules = (
 			);
@@ -1620,6 +1621,7 @@
 				BBEF197B268066D1001225BD /* Compile JavaScript */,
 				BBEF197C268066D1001225BD /* Resources */,
 				BBEF1997268066D1001225BD /* Embed Foundation Extensions */,
+				F10000300000000000000002 /* Embed Private Fonts */,
 			);
 			buildRules = (
 			);
@@ -1868,6 +1870,38 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		F10000300000000000000001 /* Embed Private Fonts */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Private Fonts";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = "/bin/sh -e";
+			shellScript = "\"$SRCROOT/app/embed_private_fonts.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F10000300000000000000002 /* Embed Private Fonts */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Private Fonts";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = "/bin/sh -e";
+			shellScript = "\"$SRCROOT/app/embed_private_fonts.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		BB034E8C263643C10000A498 /* Generate APK Repositories File */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -2523,7 +2557,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BB0B85A42586F1CB00208600 /* ProjectDebug.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 813;
+				CURRENT_PROJECT_VERSION = 814;
 			};
 			name = "Debug-ApplePleaseFixFB19282108";
 		};
@@ -2531,7 +2565,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BB0B85A52586F1E100208600 /* ProjectRelease.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 813;
+				CURRENT_PROJECT_VERSION = 814;
 			};
 			name = Release;
 		};
@@ -2553,7 +2587,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BB28C7532689522C00BDC834 /* ProjectDebugLinux.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 813;
+				CURRENT_PROJECT_VERSION = 814;
 			};
 			name = DebugLinux;
 		};
@@ -2799,7 +2833,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BB28C7522689522700BDC834 /* ProjectReleaseLinux.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 813;
+				CURRENT_PROJECT_VERSION = 814;
 			};
 			name = ReleaseLinux;
 		};

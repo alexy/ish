@@ -18,7 +18,12 @@ cannot silently substitute a different monospace face.
 
 1Unix also recognizes PragmataPro when a licensed copy is present in a private
 build. PragmataPro is not distributed in this public repository; builds
-without it continue to use JetBrains Mono.
+without it continue to use JetBrains Mono. Private builds load all four faces
+from `$FIRSTPAIR_PRIVATE_FONT_DIR`, or by default from
+`~/Library/Application Support/FirstPair/private-fonts/`, through
+`app/embed_private_fonts.sh`. Set `FIRSTPAIR_REQUIRE_PRIVATE_FONTS=1` when
+building a private device release so a missing face stops the build instead of
+silently producing a fallback-only app.
 
 SHA-256:
 
