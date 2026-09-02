@@ -26,6 +26,16 @@ A two-finger tap in terminal mouse mode explicitly restores keyboard focus.
 When terminal mouse reporting is disabled, an ordinary tap continues to focus
 the terminal and show the keyboard.
 
+In VT mouse mode, 1Unix converts the active `UITouch` directly into hterm
+mouse press, drag, and release reports. Do not rely on WebKit compatibility
+mouse events: on iPhone they can lose the finger position and collapse every
+tap to the first terminal row.
+
+Bundled terminal fonts must finish loading before hterm's cell geometry is
+accepted. The terminal remeasures and redraws after the selected face loads,
+and disables kerning and ligatures so the visible glyphs, text cursor, and
+mouse cells share one fixed grid.
+
 ## Build
 
 The Xcode build requires Meson, Ninja, LLVM, and LLD from Homebrew. Build a
@@ -35,6 +45,7 @@ compiler:
 ```sh
 cd ~/src/ish
 brew install meson ninja llvm lld
+FIRSTPAIR_REQUIRE_PRIVATE_FONTS=1 \
 PATH="/opt/homebrew/opt/lld/bin:$PATH" \
   xcodebuild -project iSH.xcodeproj \
   -scheme iSH \
@@ -66,6 +77,9 @@ resetting its filesystem removes or disconnects that state.
    item must run, rather than the first item in the menu.
 5. Open Tr-Eng or Tr-Rus and select a translation below None. The tapped
    translation must become current.
-6. Two-finger tap the terminal. The keyboard must appear.
-7. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
+6. Type across a full line in PragmataPro. The cursor must stay on the next
+   cell after the last visible character, without accumulating horizontal
+   drift.
+7. Two-finger tap the terminal. The keyboard must appear.
+8. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
    must show it again.

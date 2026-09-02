@@ -95,7 +95,7 @@ struct rowcol {
     }
 }
 
-static NSString *const HANDLERS[] = {@"syncFocus", @"focus", @"newScrollHeight", @"newScrollTop", @"openLink"};
+static NSString *const HANDLERS[] = {@"syncFocus", @"focus", @"fontMetricsReady", @"newScrollHeight", @"newScrollTop", @"openLink"};
 
 - (void)setTerminal:(Terminal *)terminal {
     if (_terminal) {
@@ -261,6 +261,9 @@ static NSString *const HANDLERS[] = {@"syncFocus", @"focus", @"newScrollHeight",
         if (!self.isFirstResponder) {
             [self becomeFirstResponder];
         }
+    } else if ([message.name isEqualToString:@"fontMetricsReady"]) {
+        NSLog(@"terminal font metrics ready: %@", message.body);
+        [self updateFloatingCursorSensitivity];
     } else if ([message.name isEqualToString:@"newScrollHeight"]) {
         self.scrollbarView.contentSize = CGSizeMake(0, [message.body doubleValue]);
     } else if ([message.name isEqualToString:@"newScrollTop"]) {

@@ -76,8 +76,9 @@ x-screen {
     -webkit-tap-highlight-color: transparent;
 }
 x-row {
-  text-rendering: optimizeLegibility;
-  font-variant-ligatures: normal;
+  font-kerning: none;
+  font-variant-ligatures: none;
+  font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
 }
 .uri-node {
   text-decoration: underline;
@@ -138,61 +139,98 @@ term.scrollPort_.screen_.addEventListener('blur', (e) => {
 }, {capture: true});
 const terminalMouseReporting = () =>
     term.vt.mouseReport != term.vt.MOUSE_REPORT_DISABLED;
-let recentTouch = null;
-let singleTouchIdentifier = null;
-const rememberSingleTouch = (e) => {
-    if (singleTouchIdentifier == null) return;
+let terminalTouchIdentifier = null;
+let terminalTouchPoint = null;
+let suppressCompatibilityMouseUntil = 0;
+const changedTouch = (e, identifier) => {
     for (let i = 0; i < e.changedTouches.length; ++i) {
         const touch = e.changedTouches[i];
-        if (touch.identifier != singleTouchIdentifier) continue;
-        recentTouch = {
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            time: performance.now(),
-        };
-        return;
+        if (touch.identifier == identifier) return touch;
     }
+    return null;
 };
-const restoreTouchCoordinates = (e) => {
-    if (!terminalMouseReporting() || recentTouch == null ||
-        performance.now() - recentTouch.time > 1000) return;
-
-    // WebKit can synthesize a mouse event at the focused element rather than
-    // the finger. hterm would then report the wrong terminal cell to the app.
-    Object.defineProperties(e, {
-        clientX: {configurable: true, value: recentTouch.clientX},
-        clientY: {configurable: true, value: recentTouch.clientY},
+const rememberTouchPoint = (touch) => {
+    terminalTouchPoint = {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+    };
+};
+const reportTouchAsMouse = (type, point, buttons) => {
+    const MouseEvent = term.getDocument().defaultView.MouseEvent;
+    const mouseEvent = new MouseEvent(type, {
+        bubbles: false,
+        cancelable: true,
+        button: 0,
+        buttons: buttons,
+        clientX: point.clientX,
+        clientY: point.clientY,
     });
+    term.onMouse_(mouseEvent);
 };
+const suppressCompatibilityMouse = (e) => {
+    if (performance.now() >= suppressCompatibilityMouseUntil) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+};
+['mousedown', 'mouseup', 'mousemove', 'click'].forEach((type) => {
+    term.scrollPort_.screen_.addEventListener(type, suppressCompatibilityMouse,
+        {capture: true});
+});
 term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
     if (terminalMouseReporting() && e.touches.length == 2) {
-        singleTouchIdentifier = null;
-        recentTouch = null;
+        suppressCompatibilityMouseUntil = performance.now() + 1000;
+        if (terminalTouchPoint != null) {
+            reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
+        }
+        terminalTouchIdentifier = null;
+        terminalTouchPoint = null;
         e.preventDefault();
         e.stopImmediatePropagation();
         native.focus({force: true});
-    } else if (e.touches.length == 1 && e.changedTouches.length == 1) {
-        singleTouchIdentifier = e.changedTouches[0].identifier;
-        rememberSingleTouch(e);
-    } else {
-        singleTouchIdentifier = null;
-        recentTouch = null;
+    } else if (terminalMouseReporting() && e.touches.length == 1 &&
+               e.changedTouches.length == 1) {
+        suppressCompatibilityMouseUntil = performance.now() + 1000;
+        const touch = e.changedTouches[0];
+        terminalTouchIdentifier = touch.identifier;
+        rememberTouchPoint(touch);
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        reportTouchAsMouse('mousedown', terminalTouchPoint, 1);
+        native.focus({mouseReporting: true});
     }
 }, {capture: true, passive: false});
-term.scrollPort_.screen_.addEventListener('touchmove', rememberSingleTouch,
-    {capture: true, passive: true});
+term.scrollPort_.screen_.addEventListener('touchmove', (e) => {
+    if (terminalTouchIdentifier == null) return;
+    const touch = changedTouch(e, terminalTouchIdentifier);
+    if (touch == null) return;
+    rememberTouchPoint(touch);
+    suppressCompatibilityMouseUntil = performance.now() + 1000;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    reportTouchAsMouse('mousemove', terminalTouchPoint, 1);
+}, {capture: true, passive: false});
 term.scrollPort_.screen_.addEventListener('touchend', (e) => {
-    rememberSingleTouch(e);
-    if (e.touches.length == 0) singleTouchIdentifier = null;
-}, {capture: true, passive: true});
-term.scrollPort_.screen_.addEventListener('touchcancel', () => {
-    singleTouchIdentifier = null;
-    recentTouch = null;
-}, {capture: true, passive: true});
-term.scrollPort_.screen_.addEventListener('mousedown', restoreTouchCoordinates,
-    {capture: true});
-term.scrollPort_.screen_.addEventListener('mouseup', restoreTouchCoordinates,
-    {capture: true});
+    if (terminalTouchIdentifier == null) return;
+    const touch = changedTouch(e, terminalTouchIdentifier);
+    if (touch != null) rememberTouchPoint(touch);
+    suppressCompatibilityMouseUntil = performance.now() + 1000;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
+    terminalTouchIdentifier = null;
+    terminalTouchPoint = null;
+}, {capture: true, passive: false});
+term.scrollPort_.screen_.addEventListener('touchcancel', (e) => {
+    if (terminalTouchIdentifier == null) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    suppressCompatibilityMouseUntil = performance.now() + 1000;
+    if (terminalTouchPoint != null) {
+        reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
+    }
+    terminalTouchIdentifier = null;
+    terminalTouchPoint = null;
+}, {capture: true, passive: false});
 term.scrollPort_.screen_.addEventListener('mousedown', (e) => {
     // Taps while there is a selection should be left to the selection view
     if ((document.getSelection().rangeCount != 0) &&
@@ -243,6 +281,44 @@ hterm.ScrollPort.prototype.syncScrollHeight = function() {
 };
 term.scrollPort_.screen_.addEventListener('scroll', syncScroll);
 
+let fontSyncRevision = 0;
+const fontFaceFamilies = {
+    'JetBrains Mono': '1Unix JetBrains Mono',
+    'PragmataPro': '1Unix PragmataPro',
+};
+const syncFontMetricsWhenReady = (fontFamily, fontSize) => {
+    const revision = ++fontSyncRevision;
+    const fontFaceFamily = fontFaceFamilies[fontFamily];
+    const fontSet = term.getDocument().fonts;
+    const finish = (loaded) => {
+        if (revision != fontSyncRevision) return;
+        term.syncFontFamily();
+        term.setFontSize(fontSize);
+        term.scrollPort_.scheduleInvalidate();
+        term.scheduleSyncCursorPosition_();
+        native.fontMetricsReady({
+            family: term.getFontFamily(),
+            loaded: loaded,
+            width: term.scrollPort_.characterSize.width,
+            height: term.scrollPort_.characterSize.height,
+        });
+    };
+
+    if (fontFaceFamily == null || fontSet == null ||
+        typeof fontSet.load != 'function') {
+        finish(false);
+        return;
+    }
+
+    const face = `${fontSize}px '${fontFaceFamily}'`;
+    Promise.all([
+        fontSet.load(face, 'MMMMMMMM'),
+        fontSet.load(`bold ${face}`, 'MMMMMMMM'),
+        fontSet.ready,
+    ]).then(() => finish(fontSet.check(face, 'MMMMMMMM')))
+      .catch(() => finish(false));
+};
+
 exports.updateStyle = ({foregroundColor, backgroundColor, fontFamily, fontSize, colorPaletteOverrides, blinkCursor, cursorShape}) => {
     const fontAliases = {
         'JetBrains Mono': "'1Unix JetBrains Mono', 'JetBrains Mono', monospace",
@@ -257,6 +333,7 @@ exports.updateStyle = ({foregroundColor, backgroundColor, fontFamily, fontSize, 
     term.getPrefs().set('color-palette-overrides', colorPaletteOverrides);
     term.getPrefs().set('cursor-blink', blinkCursor);
     term.getPrefs().set('cursor-shape', cursorShape);
+    syncFontMetricsWhenReady(fontFamily, fontSize);
 };
 
 exports.getCharacterSize = () => {
