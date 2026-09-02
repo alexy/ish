@@ -138,13 +138,61 @@ term.scrollPort_.screen_.addEventListener('blur', (e) => {
 }, {capture: true});
 const terminalMouseReporting = () =>
     term.vt.mouseReport != term.vt.MOUSE_REPORT_DISABLED;
+let recentTouch = null;
+let singleTouchIdentifier = null;
+const rememberSingleTouch = (e) => {
+    if (singleTouchIdentifier == null) return;
+    for (let i = 0; i < e.changedTouches.length; ++i) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier != singleTouchIdentifier) continue;
+        recentTouch = {
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            time: performance.now(),
+        };
+        return;
+    }
+};
+const restoreTouchCoordinates = (e) => {
+    if (!terminalMouseReporting() || recentTouch == null ||
+        performance.now() - recentTouch.time > 1000) return;
+
+    // WebKit can synthesize a mouse event at the focused element rather than
+    // the finger. hterm would then report the wrong terminal cell to the app.
+    Object.defineProperties(e, {
+        clientX: {configurable: true, value: recentTouch.clientX},
+        clientY: {configurable: true, value: recentTouch.clientY},
+    });
+};
 term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
     if (terminalMouseReporting() && e.touches.length == 2) {
+        singleTouchIdentifier = null;
+        recentTouch = null;
         e.preventDefault();
         e.stopImmediatePropagation();
         native.focus({force: true});
+    } else if (e.touches.length == 1 && e.changedTouches.length == 1) {
+        singleTouchIdentifier = e.changedTouches[0].identifier;
+        rememberSingleTouch(e);
+    } else {
+        singleTouchIdentifier = null;
+        recentTouch = null;
     }
 }, {capture: true, passive: false});
+term.scrollPort_.screen_.addEventListener('touchmove', rememberSingleTouch,
+    {capture: true, passive: true});
+term.scrollPort_.screen_.addEventListener('touchend', (e) => {
+    rememberSingleTouch(e);
+    if (e.touches.length == 0) singleTouchIdentifier = null;
+}, {capture: true, passive: true});
+term.scrollPort_.screen_.addEventListener('touchcancel', () => {
+    singleTouchIdentifier = null;
+    recentTouch = null;
+}, {capture: true, passive: true});
+term.scrollPort_.screen_.addEventListener('mousedown', restoreTouchCoordinates,
+    {capture: true});
+term.scrollPort_.screen_.addEventListener('mouseup', restoreTouchCoordinates,
+    {capture: true});
 term.scrollPort_.screen_.addEventListener('mousedown', (e) => {
     // Taps while there is a selection should be left to the selection view
     if ((document.getSelection().rangeCount != 0) &&

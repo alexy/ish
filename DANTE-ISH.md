@@ -62,6 +62,10 @@ resetting its filesystem removes or disconnects that state.
    controls. The keyboard must remain hidden.
 3. Tap a word in the poem. The dictionary must update without showing the
    keyboard.
-4. Two-finger tap the terminal. The keyboard must appear.
-5. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
+4. Open the Emacs File menu and select an item below the first row. The tapped
+   item must run, rather than the first item in the menu.
+5. Open Tr-Eng or Tr-Rus and select a translation below None. The tapped
+   translation must become current.
+6. Two-finger tap the terminal. The keyboard must appear.
+7. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
    must show it again.
