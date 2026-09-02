@@ -3,10 +3,11 @@ window.onload = async function() {
     await lib.init();
     window.term = new hterm.Terminal();
 
-    // make everything invisible so as to not be embarrassing
+    // Do not expose hterm's fallback face or transparent bootstrap colors.
+    // The first native style update reveals the terminal after its webfont
+    // and cell geometry have settled.
+    document.getElementById('terminal').style.visibility = 'hidden';
     term.getPrefs().set('background-color', 'transparent');
-    term.getPrefs().set('foreground-color', 'transparent');
-    term.getPrefs().set('cursor-color', 'transparent');
 
     term.getPrefs().set('terminal-encoding', 'iso-2022');
     term.getPrefs().set('enable-resize-status', false);
@@ -166,14 +167,34 @@ const reportTouchAsMouse = (type, point, buttons) => {
         clientY: point.clientY,
     });
     term.onMouse_(mouseEvent);
+    if (type != 'mousemove') {
+        native.log({
+            event: 'terminal-touch',
+            type: type,
+            clientX: point.clientX,
+            clientY: point.clientY,
+            row: mouseEvent.terminalRow,
+            column: mouseEvent.terminalColumn,
+        });
+    }
 };
 const suppressCompatibilityMouse = (e) => {
     if (performance.now() >= suppressCompatibilityMouseUntil) return;
+    if (e.type != 'mousemove') {
+        native.log({
+            event: 'suppressed-compatibility-mouse',
+            type: e.type,
+            clientX: e.clientX,
+            clientY: e.clientY,
+        });
+    }
     e.preventDefault();
     e.stopImmediatePropagation();
 };
 ['mousedown', 'mouseup', 'mousemove', 'click'].forEach((type) => {
-    term.scrollPort_.screen_.addEventListener(type, suppressCompatibilityMouse,
+    // hterm listens on the whole iframe document as well as the screen and
+    // cursor. iOS may target its compatibility event at any of those nodes.
+    term.getDocument().addEventListener(type, suppressCompatibilityMouse,
         {capture: true});
 });
 term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
@@ -286,21 +307,38 @@ const fontFaceFamilies = {
     'JetBrains Mono': '1Unix JetBrains Mono',
     'PragmataPro': '1Unix PragmataPro',
 };
-const syncFontMetricsWhenReady = (fontFamily, fontSize) => {
+const syncFontMetricsWhenReady = (fontFamily, fontSize, foregroundColor,
+                                  backgroundColor) => {
     const revision = ++fontSyncRevision;
     const fontFaceFamily = fontFaceFamilies[fontFamily];
     const fontSet = term.getDocument().fonts;
     const finish = (loaded) => {
         if (revision != fontSyncRevision) return;
+        // Reapply the complete visual state after the face is available. This
+        // avoids retaining a transparent or fallback-font raster from hterm's
+        // bootstrap paint on WKWebView process launches.
+        term.setBackgroundColor(backgroundColor);
+        term.setForegroundColor(foregroundColor);
+        term.setCursorColor(foregroundColor);
         term.syncFontFamily();
         term.setFontSize(fontSize);
         term.scrollPort_.scheduleInvalidate();
+        term.scrollPort_.scheduleRedraw();
         term.scheduleSyncCursorPosition_();
-        native.fontMetricsReady({
-            family: term.getFontFamily(),
-            loaded: loaded,
-            width: term.scrollPort_.characterSize.width,
-            height: term.scrollPort_.characterSize.height,
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                if (revision != fontSyncRevision) return;
+                document.getElementById('terminal').style.visibility =
+                    'visible';
+                native.fontMetricsReady({
+                    family: term.getFontFamily(),
+                    loaded: loaded,
+                    foregroundColor: term.getForegroundColor(),
+                    backgroundColor: term.getBackgroundColor(),
+                    width: term.scrollPort_.characterSize.width,
+                    height: term.scrollPort_.characterSize.height,
+                });
+            });
         });
     };
 
@@ -333,7 +371,8 @@ exports.updateStyle = ({foregroundColor, backgroundColor, fontFamily, fontSize, 
     term.getPrefs().set('color-palette-overrides', colorPaletteOverrides);
     term.getPrefs().set('cursor-blink', blinkCursor);
     term.getPrefs().set('cursor-shape', cursorShape);
-    syncFontMetricsWhenReady(fontFamily, fontSize);
+    syncFontMetricsWhenReady(fontFamily, fontSize, foregroundColor,
+                             backgroundColor);
 };
 
 exports.getCharacterSize = () => {

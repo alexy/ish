@@ -29,12 +29,16 @@ the terminal and show the keyboard.
 In VT mouse mode, 1Unix converts the active `UITouch` directly into hterm
 mouse press, drag, and release reports. Do not rely on WebKit compatibility
 mouse events: on iPhone they can lose the finger position and collapse every
-tap to the first terminal row.
+tap to the first terminal row. Suppress that compatibility sequence at the
+hterm iframe document in capture phase, because hterm listens on the document
+as well as its screen and cursor.
 
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
 and disables kerning and ligatures so the visible glyphs, text cursor, and
-mouse cells share one fixed grid.
+mouse cells share one fixed grid. Keep the terminal hidden during bootstrap,
+then atomically reapply its selected font, full foreground/background colors,
+and cursor color before revealing the settled first paint.
 
 ## Build
 
@@ -80,6 +84,9 @@ resetting its filesystem removes or disconnects that state.
 6. Type across a full line in PragmataPro. The cursor must stay on the next
    cell after the last visible character, without accumulating horizontal
    drift.
-7. Two-finger tap the terminal. The keyboard must appear.
-8. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
+7. Force-quit and reopen repeatedly. Every launch must use the same crisp,
+   full-contrast font; no launch may expose the fallback or transparent
+   bootstrap state.
+8. Two-finger tap the terminal. The keyboard must appear.
+9. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
    must show it again.
