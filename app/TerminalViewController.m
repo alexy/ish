@@ -15,6 +15,7 @@
 #import "CurrentRoot.h"
 #import "NSObject+SaneKVO.h"
 #import "LinuxInterop.h"
+#import <objc/runtime.h>
 #include "kernel/init.h"
 #include "kernel/task.h"
 #include "kernel/calls.h"
@@ -34,6 +35,11 @@
 @property (strong, nonatomic) IBOutletCollection(id) NSArray *barButtons;
 @property (strong, nonatomic) IBOutletCollection(id) NSArray *barControls;
 @property NSArray<BarButton *> *individualArrowButtons;
+@property NSArray<BarButton *> *readerBarButtons;
+@property UIView *readerBarView;
+@property UIStackView *readerBar;
+@property NSLayoutConstraint *readerBarBottom;
+@property NSLayoutConstraint *readerBarHeight;
 
 @property (weak, nonatomic) IBOutlet UIInputView *barView;
 @property (weak, nonatomic) IBOutlet UIStackView *bar;
@@ -56,7 +62,9 @@
 @property (nonatomic) BOOL hasExternalKeyboard;
 
 - (void)addIndividualArrowButtons;
+- (void)addReaderBar;
 - (void)pressArrowDirection:(ArrowDirection)direction;
+- (void)pressReaderKey:(BarButton *)sender;
 
 @end
 
@@ -101,6 +109,7 @@
                  object:nil];
 
     [self addIndividualArrowButtons];
+    [self addReaderBar];
     [self _updateStyleFromPreferences:NO];
     
     if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
@@ -159,6 +168,11 @@
 - (void)viewDidAppear:(BOOL)animated {
     [AppDelegate maybePresentStartupMessageOnViewController:self];
     [super viewDidAppear:animated];
+}
+
+- (void)viewSafeAreaInsetsDidChange {
+    [super viewSafeAreaInsetsDidChange];
+    self.readerBarHeight.constant = 42 + self.view.safeAreaInsets.bottom;
 }
 
 - (void)startNewSession {
@@ -295,6 +309,7 @@
     NSTimeInterval duration = animated ? 0.1 : 0;
     [UIView animateWithDuration:duration animations:^{
         self.view.backgroundColor = [[UIColor alloc] ish_initWithHexString:UserPreferences.shared.palette.backgroundColor];
+        self.readerBarView.backgroundColor = self.view.backgroundColor;
         UIKeyboardAppearance keyAppearance = UserPreferences.shared.keyboardAppearance;
         self.termView.keyboardAppearance = keyAppearance;
         for (BarButton *button in self.barButtons) {
@@ -360,7 +375,7 @@
         pad = MAX(self.view.safeAreaInsets.bottom, self.termView.inputAccessoryView.frame.size.height);
     }
     // NSLog(@"pad %f", pad);
-    self.bottomConstraint.constant = pad;
+    self.readerBarBottom.constant = -pad;
 
     BOOL initialLayout = self.termView.needsUpdateConstraints;
     [self.view setNeedsUpdateConstraints];
@@ -491,6 +506,9 @@
     if (arrowPadIndex == NSNotFound) {
         return;
     }
+    UIView *arrowPad = self.bar.arrangedSubviews[arrowPadIndex];
+    [self.bar removeArrangedSubview:arrowPad];
+    [arrowPad removeFromSuperview];
 
     NSArray<NSNumber *> *directions = @[@(ArrowLeft), @(ArrowUp), @(ArrowDown), @(ArrowRight)];
     NSArray<NSString *> *symbols = @[@"arrow.left", @"arrow.up", @"arrow.down", @"arrow.right"];
@@ -513,13 +531,73 @@
         } else {
             [button setTitle:titles[index] forState:UIControlStateNormal];
         }
-        [self.bar insertArrangedSubview:button atIndex:arrowPadIndex + index + 1];
+        [self.bar insertArrangedSubview:button atIndex:arrowPadIndex + index];
         [button.widthAnchor constraintEqualToAnchor:self.infoButton.widthAnchor].active = YES;
         [buttons addObject:button];
     }
 
     self.individualArrowButtons = buttons;
     self.barButtons = [self.barButtons arrayByAddingObjectsFromArray:buttons];
+}
+
+- (void)addReaderBar {
+    self.bottomConstraint.active = NO;
+
+    UIView *barView = [[UIView alloc] initWithFrame:CGRectZero];
+    barView.translatesAutoresizingMaskIntoConstraints = NO;
+    UIStackView *bar = [[UIStackView alloc] initWithFrame:CGRectZero];
+    bar.translatesAutoresizingMaskIntoConstraints = NO;
+    bar.axis = UILayoutConstraintAxisHorizontal;
+    bar.alignment = UIStackViewAlignmentFill;
+    bar.distribution = UIStackViewDistributionFillEqually;
+    bar.spacing = 4;
+    [barView addSubview:bar];
+    [self.view addSubview:barView];
+
+    NSArray<NSString *> *labels = @[@"<<", @"<", @">", @">>", @"Tr<", @"Tr>", @"2nd", @"Lang"];
+    NSArray<NSString *> *keys = @[@"K", @"k", @"j", @"J", @"[", @"]", @"b", @"t"];
+    NSArray<NSString *> *accessibility = @[
+        @"Previous significant word", @"Previous word", @"Next word", @"Next significant word",
+        @"Previous translation", @"Next translation", @"Toggle second translation", @"Change language"
+    ];
+    NSMutableArray<BarButton *> *buttons = [NSMutableArray arrayWithCapacity:labels.count];
+    for (NSUInteger index = 0; index < labels.count; index++) {
+        BarButton *button = [[BarButton alloc] initWithFrame:CGRectZero];
+        button.translatesAutoresizingMaskIntoConstraints = NO;
+        button.secondary = index >= 4;
+        button.accessibilityLabel = accessibility[index];
+        button.titleLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
+        [button setTitle:labels[index] forState:UIControlStateNormal];
+        objc_setAssociatedObject(button, @selector(pressReaderKey:), keys[index], OBJC_ASSOCIATION_COPY_NONATOMIC);
+        [button addTarget:self action:@selector(pressReaderKey:) forControlEvents:UIControlEventPrimaryActionTriggered];
+        [bar addArrangedSubview:button];
+        [buttons addObject:button];
+    }
+
+    self.readerBarView = barView;
+    self.readerBar = bar;
+    self.readerBarButtons = buttons;
+    self.readerBarBottom = [barView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor];
+    self.readerBarHeight = [barView.heightAnchor constraintEqualToConstant:42 + self.view.safeAreaInsets.bottom];
+    [NSLayoutConstraint activateConstraints:@[
+        [barView.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
+        [barView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
+        self.readerBarBottom,
+        self.readerBarHeight,
+        [bar.leadingAnchor constraintEqualToAnchor:barView.leadingAnchor constant:6],
+        [bar.trailingAnchor constraintEqualToAnchor:barView.trailingAnchor constant:-6],
+        [bar.topAnchor constraintEqualToAnchor:barView.topAnchor constant:4],
+        [bar.heightAnchor constraintEqualToConstant:34],
+        [self.termView.bottomAnchor constraintEqualToAnchor:barView.topAnchor]
+    ]];
+    self.barButtons = [self.barButtons arrayByAddingObjectsFromArray:buttons];
+}
+
+- (void)pressReaderKey:(BarButton *)sender {
+    NSString *key = objc_getAssociatedObject(sender, @selector(pressReaderKey:));
+    if (key != nil) {
+        [self pressKey:key];
+    }
 }
 
 - (void)pressArrowDirection:(ArrowDirection)direction {

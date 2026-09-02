@@ -48,6 +48,17 @@ press and release together at the touch-down cell and consumes the later
 physical move/end events. Restrict this behavior to 1003: other terminal mouse
 modes retain ordinary press, drag, and release semantics.
 
+Build 819 adds a persistent one-line Reader strip below the terminal. Unlike
+the ordinary extra-key row, it is part of the terminal layout rather than an
+`inputAccessoryView`, so hiding the software keyboard leaves it visible. When
+the keyboard opens, the strip moves above it. Its eight buttons send ordinary
+keyboard input and therefore bypass terminal mouse decoding: **<< < > >> Tr<
+Tr> 2nd Lang** send `K`, `k`, `j`, `J`, `[`, `]`, `b`, and `t`. Keep this
+contract synchronized with FirstPair Reader; the uppercase word commands skip
+common function words, while lowercase commands move one source word.
+The keyboard accessory row removes the old gesture arrow pad and retains the
+four explicit arrow keys in that space; never ship both representations.
+
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
 and disables kerning and ligatures so the visible glyphs, text cursor, and
@@ -115,3 +126,8 @@ Build 818 adds one acceptance test: a single touch on Reader **Next** must
 advance exactly once before finger drift or a second tap. The same tap must not
 resize a pane, open Messages, or leave button help in the echo area. The stock
 File menu and both translation menus must continue to select non-first rows.
+
+Build 819 additionally requires the native Reader strip to remain visible after
+the keyboard is hidden. Each of its eight buttons must execute once without
+restoring the keyboard; `>>` must skip intervening prepositions or forms of
+*essere*, and `Tr<`/`Tr>` must change the translation under point.
