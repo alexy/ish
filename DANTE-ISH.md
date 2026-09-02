@@ -41,6 +41,13 @@ Without that report, a correctly located press and release still select the
 menu's initial item: **File -> Quit** opens **Find File**, and translation
 choices collapse to **None**.
 
+DECSET 1003 touch clicks are atomic in build 818. Emacs does not dispatch a
+terminal mode-line click until it receives mouse release, but a finger can
+drift to another cell before `touchend`. After reporting movement, 1Unix emits
+press and release together at the touch-down cell and consumes the later
+physical move/end events. Restrict this behavior to 1003: other terminal mouse
+modes retain ordinary press, drag, and release semantics.
+
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
 and disables kerning and ligatures so the visible glyphs, text cursor, and
@@ -103,3 +110,8 @@ Build 817 passed the physical-device menu check on 2026-09-02: **File ->
 Quit** exited Emacs, **Tr-Eng -> Norton** and **Tr-Rus -> Ilyushin** changed
 their respective translations, the keyboard stayed hidden, and both launches
 kept the bundled PragmataPro rendering crisp.
+
+Build 818 adds one acceptance test: a single touch on Reader **Next** must
+advance exactly once before finger drift or a second tap. The same tap must not
+resize a pane, open Messages, or leave button help in the echo area. The stock
+File menu and both translation menus must continue to select non-first rows.

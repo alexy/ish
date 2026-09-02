@@ -111,9 +111,11 @@ term.reset();
 // Emacs use that mode to update the active row before accepting a click.  A
 // touchscreen has no hover phase, so treat 1003 as drag tracking and send one
 // synthetic movement at touch-down below.
+let terminalTouchClicksAtStart = false;
 const originalSetDECMode = term.vt.setDECMode.bind(term.vt);
 term.vt.setDECMode = function(code, state) {
     if (parseInt(code, 10) == 1003) {
+        terminalTouchClicksAtStart = state;
         this.mouseReport = state ?
             this.MOUSE_REPORT_DRAG : this.MOUSE_REPORT_DISABLED;
         this.terminal.syncMouseStyle();
@@ -157,6 +159,7 @@ const terminalMouseReporting = () =>
     term.vt.mouseReport != term.vt.MOUSE_REPORT_DISABLED;
 let terminalTouchIdentifier = null;
 let terminalTouchPoint = null;
+let terminalTouchPressed = false;
 let suppressCompatibilityMouseUntil = 0;
 const changedTouch = (e, identifier) => {
     for (let i = 0; i < e.changedTouches.length; ++i) {
@@ -215,11 +218,12 @@ const suppressCompatibilityMouse = (e) => {
 term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
     if (terminalMouseReporting() && e.touches.length == 2) {
         suppressCompatibilityMouseUntil = performance.now() + 1000;
-        if (terminalTouchPoint != null) {
+        if (terminalTouchPressed && terminalTouchPoint != null) {
             reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
         }
         terminalTouchIdentifier = null;
         terminalTouchPoint = null;
+        terminalTouchPressed = false;
         e.preventDefault();
         e.stopImmediatePropagation();
         native.focus({force: true});
@@ -236,6 +240,14 @@ term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
         term.vt.lastMouseDragResponse_ = null;
         reportTouchAsMouse('mousemove', terminalTouchPoint, 1);
         reportTouchAsMouse('mousedown', terminalTouchPoint, 1);
+        terminalTouchPressed = true;
+        // Emacs waits for terminal mouse release before dispatching a mode-line
+        // button. Complete its 1003 tap at the stable touch-down cell; the
+        // physical finger may drift before touchend on a small phone target.
+        if (terminalTouchClicksAtStart) {
+            reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
+            terminalTouchPressed = false;
+        }
         native.focus({mouseReporting: true});
     }
 }, {capture: true, passive: false});
@@ -247,7 +259,9 @@ term.scrollPort_.screen_.addEventListener('touchmove', (e) => {
     suppressCompatibilityMouseUntil = performance.now() + 1000;
     e.preventDefault();
     e.stopImmediatePropagation();
-    reportTouchAsMouse('mousemove', terminalTouchPoint, 1);
+    if (terminalTouchPressed) {
+        reportTouchAsMouse('mousemove', terminalTouchPoint, 1);
+    }
 }, {capture: true, passive: false});
 term.scrollPort_.screen_.addEventListener('touchend', (e) => {
     if (terminalTouchIdentifier == null) return;
@@ -256,20 +270,24 @@ term.scrollPort_.screen_.addEventListener('touchend', (e) => {
     suppressCompatibilityMouseUntil = performance.now() + 1000;
     e.preventDefault();
     e.stopImmediatePropagation();
-    reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
+    if (terminalTouchPressed) {
+        reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
+    }
     terminalTouchIdentifier = null;
     terminalTouchPoint = null;
+    terminalTouchPressed = false;
 }, {capture: true, passive: false});
 term.scrollPort_.screen_.addEventListener('touchcancel', (e) => {
     if (terminalTouchIdentifier == null) return;
     e.preventDefault();
     e.stopImmediatePropagation();
     suppressCompatibilityMouseUntil = performance.now() + 1000;
-    if (terminalTouchPoint != null) {
+    if (terminalTouchPressed && terminalTouchPoint != null) {
         reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
     }
     terminalTouchIdentifier = null;
     terminalTouchPoint = null;
+    terminalTouchPressed = false;
 }, {capture: true, passive: false});
 term.scrollPort_.screen_.addEventListener('mousedown', (e) => {
     // Taps while there is a selection should be left to the selection view
