@@ -107,15 +107,15 @@ window.exports = {};
 term.io.push();
 term.reset();
 
-// This hterm predates DECSET 1003 (all-motion mouse tracking).  TTY menus in
-// Emacs use that mode to update the active row before accepting a click.  A
-// touchscreen has no hover phase, so treat 1003 as drag tracking and send one
-// synthetic movement at touch-down below.
-let terminalTouchClicksAtStart = false;
+// This hterm predates DECSET 1003 (all-motion mouse tracking). TTY menus in
+// Emacs use that mode to update the active row before accepting a click. Treat
+// it as drag tracking, and let the touch handlers distinguish a stable-cell tap
+// from a vertical wheel gesture.
+let terminalTouchAllMotion = false;
 const originalSetDECMode = term.vt.setDECMode.bind(term.vt);
 term.vt.setDECMode = function(code, state) {
     if (parseInt(code, 10) == 1003) {
-        terminalTouchClicksAtStart = state;
+        terminalTouchAllMotion = state;
         this.mouseReport = state ?
             this.MOUSE_REPORT_DRAG : this.MOUSE_REPORT_DISABLED;
         this.terminal.syncMouseStyle();
@@ -159,6 +159,11 @@ const terminalMouseReporting = () =>
     term.vt.mouseReport != term.vt.MOUSE_REPORT_DISABLED;
 let terminalTouchIdentifier = null;
 let terminalTouchPoint = null;
+let terminalTouchStartPoint = null;
+let terminalTouchLastY = null;
+let terminalTouchScrollRemainder = 0;
+let terminalTouchScrolling = false;
+let terminalTouchPendingTap = false;
 let terminalTouchPressed = false;
 let suppressCompatibilityMouseUntil = 0;
 const changedTouch = (e, identifier) => {
@@ -196,6 +201,56 @@ const reportTouchAsMouse = (type, point, buttons) => {
         });
     }
 };
+const reportTouchAsWheel = (point, deltaY) => {
+    const WheelEvent = term.getDocument().defaultView.WheelEvent;
+    const wheelEvent = new WheelEvent('wheel', {
+        bubbles: false,
+        cancelable: true,
+        deltaMode: WheelEvent.DOM_DELTA_LINE,
+        deltaY: deltaY,
+        clientX: point.clientX,
+        clientY: point.clientY,
+    });
+    term.onMouse_(wheelEvent);
+};
+const resetTerminalTouch = () => {
+    terminalTouchIdentifier = null;
+    terminalTouchPoint = null;
+    terminalTouchStartPoint = null;
+    terminalTouchLastY = null;
+    terminalTouchScrollRemainder = 0;
+    terminalTouchScrolling = false;
+    terminalTouchPendingTap = false;
+    terminalTouchPressed = false;
+};
+const reportPendingTouchTap = () => {
+    if (!terminalTouchPendingTap || terminalTouchStartPoint == null) return;
+    // Keep all three reports on the touch-down cell. Physical finger drift must
+    // not move a narrow Reader or TTY-menu target before release.
+    term.vt.lastMouseDragResponse_ = null;
+    reportTouchAsMouse('mousemove', terminalTouchStartPoint, 1);
+    reportTouchAsMouse('mousedown', terminalTouchStartPoint, 1);
+    reportTouchAsMouse('mouseup', terminalTouchStartPoint, 0);
+    terminalTouchPendingTap = false;
+};
+const reportTouchScroll = (touch) => {
+    if (!terminalTouchPendingTap || terminalTouchStartPoint == null ||
+        terminalTouchLastY == null) return;
+    terminalTouchScrollRemainder += terminalTouchLastY - touch.clientY;
+    terminalTouchLastY = touch.clientY;
+    const lineHeight = term.scrollPort_.characterSize.height || 16;
+    const step = Math.max(8, lineHeight * 0.75);
+    const direction = Math.sign(terminalTouchScrollRemainder);
+    const count = Math.min(20,
+        Math.floor(Math.abs(terminalTouchScrollRemainder) / step));
+    if (count == 0) return;
+    terminalTouchScrolling = true;
+    for (let i = 0; i < count; ++i) {
+        // Finger up moves the text up (wheel down), as in a native scroll view.
+        reportTouchAsWheel(terminalTouchStartPoint, direction);
+    }
+    terminalTouchScrollRemainder -= direction * count * step;
+};
 const suppressCompatibilityMouse = (e) => {
     if (performance.now() >= suppressCompatibilityMouseUntil) return;
     if (e.type != 'mousemove') {
@@ -221,9 +276,7 @@ term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
         if (terminalTouchPressed && terminalTouchPoint != null) {
             reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
         }
-        terminalTouchIdentifier = null;
-        terminalTouchPoint = null;
-        terminalTouchPressed = false;
+        resetTerminalTouch();
         e.preventDefault();
         e.stopImmediatePropagation();
         native.focus({force: true});
@@ -233,20 +286,16 @@ term.scrollPort_.screen_.addEventListener('touchstart', (e) => {
         const touch = e.changedTouches[0];
         terminalTouchIdentifier = touch.identifier;
         rememberTouchPoint(touch);
+        terminalTouchStartPoint = terminalTouchPoint;
+        terminalTouchLastY = touch.clientY;
+        terminalTouchScrollRemainder = 0;
+        terminalTouchScrolling = false;
+        terminalTouchPendingTap = terminalTouchAllMotion;
         e.preventDefault();
         e.stopImmediatePropagation();
-        // TTY popup menus select from their last pointer-movement position.
-        // A tap begins in place, so report that position before the press.
-        term.vt.lastMouseDragResponse_ = null;
-        reportTouchAsMouse('mousemove', terminalTouchPoint, 1);
-        reportTouchAsMouse('mousedown', terminalTouchPoint, 1);
-        terminalTouchPressed = true;
-        // Emacs waits for terminal mouse release before dispatching a mode-line
-        // button. Complete its 1003 tap at the stable touch-down cell; the
-        // physical finger may drift before touchend on a small phone target.
-        if (terminalTouchClicksAtStart) {
-            reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
-            terminalTouchPressed = false;
+        if (!terminalTouchPendingTap) {
+            reportTouchAsMouse('mousedown', terminalTouchPoint, 1);
+            terminalTouchPressed = true;
         }
         native.focus({mouseReporting: true});
     }
@@ -259,7 +308,9 @@ term.scrollPort_.screen_.addEventListener('touchmove', (e) => {
     suppressCompatibilityMouseUntil = performance.now() + 1000;
     e.preventDefault();
     e.stopImmediatePropagation();
-    if (terminalTouchPressed) {
+    if (terminalTouchPendingTap) {
+        reportTouchScroll(touch);
+    } else if (terminalTouchPressed) {
         reportTouchAsMouse('mousemove', terminalTouchPoint, 1);
     }
 }, {capture: true, passive: false});
@@ -270,12 +321,12 @@ term.scrollPort_.screen_.addEventListener('touchend', (e) => {
     suppressCompatibilityMouseUntil = performance.now() + 1000;
     e.preventDefault();
     e.stopImmediatePropagation();
-    if (terminalTouchPressed) {
+    if (terminalTouchPendingTap && !terminalTouchScrolling) {
+        reportPendingTouchTap();
+    } else if (terminalTouchPressed) {
         reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
     }
-    terminalTouchIdentifier = null;
-    terminalTouchPoint = null;
-    terminalTouchPressed = false;
+    resetTerminalTouch();
 }, {capture: true, passive: false});
 term.scrollPort_.screen_.addEventListener('touchcancel', (e) => {
     if (terminalTouchIdentifier == null) return;
@@ -285,9 +336,7 @@ term.scrollPort_.screen_.addEventListener('touchcancel', (e) => {
     if (terminalTouchPressed && terminalTouchPoint != null) {
         reportTouchAsMouse('mouseup', terminalTouchPoint, 0);
     }
-    terminalTouchIdentifier = null;
-    terminalTouchPoint = null;
-    terminalTouchPressed = false;
+    resetTerminalTouch();
 }, {capture: true, passive: false});
 term.scrollPort_.screen_.addEventListener('mousedown', (e) => {
     // Taps while there is a selection should be left to the selection view

@@ -41,12 +41,14 @@ Without that report, a correctly located press and release still select the
 menu's initial item: **File -> Quit** opens **Find File**, and translation
 choices collapse to **None**.
 
-DECSET 1003 touch clicks are atomic in build 818. Emacs does not dispatch a
-terminal mode-line click until it receives mouse release, but a finger can
-drift to another cell before `touchend`. After reporting movement, 1Unix emits
-press and release together at the touch-down cell and consumes the later
-physical move/end events. Restrict this behavior to 1003: other terminal mouse
-modes retain ordinary press, drag, and release semantics.
+DECSET 1003 touch clicks use one stable cell. Emacs does not dispatch a terminal
+mode-line click until it receives mouse release, but a finger can drift to
+another cell before `touchend`. 1Unix waits for either release or deliberate
+vertical movement. A released tap emits movement, press, and release together
+at the touch-down cell. A vertical drag emits terminal wheel steps at that same
+cell, letting Emacs scroll the window where the gesture began without clicking
+its text. Restrict this behavior to 1003: other terminal mouse modes retain
+ordinary press, drag, and release semantics.
 
 Build 819 adds a persistent one-line Reader strip below the terminal. Unlike
 the ordinary extra-key row, it is part of the terminal layout rather than an
@@ -69,6 +71,12 @@ remain checkboxes: an unchecked edition is added beside the editions already
 shown, and a checked edition removes itself. A tap sends `b` to add the
 Reader's configured favorite editions without replacing anything. A hold sends
 `B` to keep those favorites and remove only the other editions currently shown.
+
+Build 824 adds native vertical finger scrolling in terminal mouse mode. Drag
+up or down in the poem to send natural-direction wheel steps to that Emacs
+window. Movement shorter than three quarters of a text line remains a tap, so
+narrow Reader buttons and TTY-menu rows keep their stable touch-down target.
+Run `node tests/terminal-touch-gesture.test.js` before the signed app build.
 
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
@@ -127,6 +135,9 @@ resetting its filesystem removes or disconnects that state.
 8. Two-finger tap the terminal. The keyboard must appear.
 9. Exit terminal mouse mode and hide the keyboard. An ordinary terminal tap
    must show it again.
+10. Drag upward and downward through the poem. The poem window must scroll in
+    the natural direction without looking up a word, activating a link, moving
+    a pane divider, showing the keyboard, or scrolling the Dictionary pane.
 
 Build 817 passed the physical-device menu check on 2026-09-02: **File ->
 Quit** exited Emacs, **Tr-Eng -> Norton** and **Tr-Rus -> Ilyushin** changed
@@ -142,3 +153,6 @@ Build 819 additionally requires the native Reader strip to remain visible after
 the keyboard is hidden. Each Reader-strip button must execute once without
 restoring the keyboard; `>>` must skip intervening prepositions or forms of
 *essere*, and `Tr<`/`Tr>` must change the translation under point.
+
+Build 824 additionally requires a short poem tap to retain all build 818 menu
+and button behavior, while a vertical poem drag scrolls only the poem window.
