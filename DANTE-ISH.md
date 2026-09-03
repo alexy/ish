@@ -51,23 +51,24 @@ modes retain ordinary press, drag, and release semantics.
 Build 819 adds a persistent one-line Reader strip below the terminal. Unlike
 the ordinary extra-key row, it is part of the terminal layout rather than an
 `inputAccessoryView`, so hiding the software keyboard leaves it visible. When
-the keyboard opens, the strip moves above it. Its seven buttons send ordinary
-keyboard input and therefore bypass terminal mouse decoding: **Tr< Tr> Lang
-<< < > >>** send `[`, `]`, `t`, `K`, `k`, `j`, and `J`. Keep this
+the keyboard opens, the strip moves above it. Its eight buttons send ordinary
+keyboard input and therefore bypass terminal mouse decoding: **Tr< Tr> 2nd
+Lang << < > >>** send `[`, `]`, `b`, `t`, `K`, `k`, `j`, and `J`. Keep this
 contract synchronized with FirstPair Reader; the uppercase word commands skip
 common function words, while lowercase commands move one source word.
 The keyboard accessory row removes the old gesture arrow pad and retains the
 four explicit arrow keys in that space; never ship both representations.
-Press-and-hold reverses the three translation controls without sending the
-ordinary release action: **Tr<** advances, **Tr>** retreats, and **Lang**
-cycles to the previous language state. Reader binds reverse
-language cycling to uppercase `T`.
+Press-and-hold gives the four translation controls their paired action without
+sending the ordinary release action: **Tr<** advances, **Tr>** retreats,
+**2nd** keeps only the configured favorite translations, and **Lang** cycles
+to the previous language state. Reader binds these actions to `]`, `[`, `B`,
+and `T`.
 
-Build 822 removes the obsolete **2nd** native control. Translation menus are
-checkboxes: an unchecked edition is added beside the editions already shown,
-and a checked edition removes itself. The Reader keeps the `b` keyboard command
-as an add-one/collapse-to-one shortcut, but it is no longer a dedicated app
-button.
+Build 823 restores **2nd** with a precise additive meaning. Translation menus
+remain checkboxes: an unchecked edition is added beside the editions already
+shown, and a checked edition removes itself. A tap sends `b` to add the
+Reader's configured favorite editions without replacing anything. A hold sends
+`B` to keep those favorites and remove only the other editions currently shown.
 
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
