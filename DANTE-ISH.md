@@ -91,7 +91,10 @@ latter active permanently and collapse the Reader bar's height to zero when it
 is hidden. After the synchronous native layout, explicitly resize, invalidate,
 redraw, and reposition hterm's cursor. Run both
 `node tests/terminal-touch-gesture.test.js` and
-`node tests/terminal-reader-bar.test.js` before signing.
+`node tests/terminal-reader-bar.test.js` before signing. The simulator UI test
+`UITests/testReaderBarVisibilityKeepsTerminalVisible` repeats two hide/show
+cycles, checks the terminal text after each transition, verifies the Reader
+controls' visibility, and confirms the terminal frame changes with the bar.
 
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
