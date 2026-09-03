@@ -65,6 +65,7 @@
 - (void)addReaderBar;
 - (void)pressArrowDirection:(ArrowDirection)direction;
 - (void)pressReaderKey:(BarButton *)sender;
+- (void)pressReaderLongKey:(UILongPressGestureRecognizer *)recognizer;
 
 @end
 
@@ -556,6 +557,7 @@
 
     NSArray<NSString *> *labels = @[@"Tr<", @"Tr>", @"2nd", @"Lang", @"<<", @"<", @">", @">>"];
     NSArray<NSString *> *keys = @[@"[", @"]", @"b", @"t", @"K", @"k", @"j", @"J"];
+    NSArray<NSString *> *longKeys = @[@"]", @"[", @"b", @"T"];
     NSArray<NSString *> *accessibility = @[
         @"Previous translation", @"Next translation", @"Toggle second translation", @"Change language",
         @"Previous significant word", @"Previous word", @"Next word", @"Next significant word"
@@ -570,6 +572,14 @@
         [button setTitle:labels[index] forState:UIControlStateNormal];
         objc_setAssociatedObject(button, @selector(pressReaderKey:), keys[index], OBJC_ASSOCIATION_COPY_NONATOMIC);
         [button addTarget:self action:@selector(pressReaderKey:) forControlEvents:UIControlEventPrimaryActionTriggered];
+        if (index < longKeys.count) {
+            UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]
+                initWithTarget:self action:@selector(pressReaderLongKey:)];
+            longPress.minimumPressDuration = 0.5;
+            longPress.cancelsTouchesInView = YES;
+            objc_setAssociatedObject(longPress, @selector(pressReaderLongKey:), longKeys[index], OBJC_ASSOCIATION_COPY_NONATOMIC);
+            [button addGestureRecognizer:longPress];
+        }
         [bar addArrangedSubview:button];
         [buttons addObject:button];
     }
@@ -595,6 +605,16 @@
 
 - (void)pressReaderKey:(BarButton *)sender {
     NSString *key = objc_getAssociatedObject(sender, @selector(pressReaderKey:));
+    if (key != nil) {
+        [self pressKey:key];
+    }
+}
+
+- (void)pressReaderLongKey:(UILongPressGestureRecognizer *)recognizer {
+    if (recognizer.state != UIGestureRecognizerStateBegan) {
+        return;
+    }
+    NSString *key = objc_getAssociatedObject(recognizer, @selector(pressReaderLongKey:));
     if (key != nil) {
         [self pressKey:key];
     }

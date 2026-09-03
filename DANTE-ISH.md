@@ -58,6 +58,10 @@ contract synchronized with FirstPair Reader; the uppercase word commands skip
 common function words, while lowercase commands move one source word.
 The keyboard accessory row removes the old gesture arrow pad and retains the
 four explicit arrow keys in that space; never ship both representations.
+Press-and-hold reverses the four translation controls without sending the
+ordinary release action: **Tr<** advances, **Tr>** retreats, **2nd** toggles
+back, and **Lang** cycles to the previous language state. Reader binds reverse
+language cycling to uppercase `T`.
 
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
