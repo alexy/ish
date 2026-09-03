@@ -192,6 +192,15 @@ static NSString *const HANDLERS[] = {@"syncFocus", @"focus", @"fontMetricsReady"
     [self _updateStyle];
 }
 
+- (void)refreshTerminalLayout {
+    if (!self.terminal.loaded)
+        return;
+    [self.terminal.webView evaluateJavaScript:@"exports.refreshLayout()"
+                             completionHandler:^(id result, NSError *error) {
+        [self updateFloatingCursorSensitivity];
+    }];
+}
+
 - (CGFloat)effectiveFontSize {
     if (self.overrideFontSize != 0)
         return self.overrideFontSize;

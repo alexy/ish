@@ -29,4 +29,6 @@ enum OverrideAppearance {
 
 @property (nonatomic) Terminal *terminal;
 
+- (void)refreshTerminalLayout;
+
 @end

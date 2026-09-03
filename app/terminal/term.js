@@ -465,6 +465,14 @@ exports.getCharacterSize = () => {
     return [term.scrollPort_.characterSize.width, term.scrollPort_.characterSize.height];
 };
 
+exports.refreshLayout = () => {
+    term.scrollPort_.resize();
+    term.scrollPort_.scheduleInvalidate();
+    term.scrollPort_.scheduleRedraw();
+    term.scheduleSyncCursorPosition_();
+    return exports.getSize();
+};
+
 exports.clearScrollback = () => term.clearScrollback();
 exports.setUserGesture = () => term.accessibilityReader_.hasUserGesture = true;
 

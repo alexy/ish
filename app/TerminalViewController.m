@@ -64,6 +64,7 @@
 
 - (void)addIndividualArrowButtons;
 - (void)addReaderBar;
+- (void)updateReaderBarVisibility;
 - (void)pressArrowDirection:(ArrowDirection)direction;
 - (void)pressReaderKey:(BarButton *)sender;
 - (void)pressReaderLongKey:(UILongPressGestureRecognizer *)recognizer;
@@ -174,7 +175,7 @@
 
 - (void)viewSafeAreaInsetsDidChange {
     [super viewSafeAreaInsetsDidChange];
-    self.readerBarHeight.constant = 42 + self.view.safeAreaInsets.bottom;
+    [self updateReaderBarVisibility];
 }
 
 - (void)startNewSession {
@@ -335,16 +336,7 @@
             self.ignoreKeyboardMotion = NO;
         });
     }
-    BOOL showReaderBar = UserPreferences.shared.showDanteReaderBar;
-    self.readerBarView.hidden = !showReaderBar;
-    if (showReaderBar) {
-        self.bottomConstraint.active = NO;
-        self.readerTermBottom.active = YES;
-    } else {
-        self.readerTermBottom.active = NO;
-        self.bottomConstraint.active = YES;
-    }
-    [self.view setNeedsLayout];
+    [self updateReaderBarVisibility];
 }
 - (void)_updateStyleAnimated {
     [self _updateStyleFromPreferences:YES];
@@ -613,6 +605,26 @@
         self.readerTermBottom
     ]];
     self.barButtons = [self.barButtons arrayByAddingObjectsFromArray:buttons];
+}
+
+- (void)updateReaderBarVisibility {
+    if (self.readerBarView == nil || self.readerBarHeight == nil)
+        return;
+    BOOL showReaderBar = UserPreferences.shared.showDanteReaderBar;
+    BOOL shouldHide = !showReaderBar;
+    CGFloat height = showReaderBar ? 42 + self.view.safeAreaInsets.bottom : 0;
+    BOOL geometryChanged = self.readerBarView.hidden != shouldHide ||
+        self.readerBarHeight.constant != height;
+    self.readerBarView.hidden = shouldHide;
+    self.readerBarHeight.constant = height;
+    if (!geometryChanged)
+        return;
+    [self.view setNeedsLayout];
+    [self.view layoutIfNeeded];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.view layoutIfNeeded];
+        [self.termView refreshTerminalLayout];
+    });
 }
 
 - (void)pressReaderKey:(BarButton *)sender {

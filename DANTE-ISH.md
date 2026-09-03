@@ -84,6 +84,15 @@ persistent native Reader strip and lets the terminal use its space; on restores
 the strip. This preference is independent of **Keep Keyboard Hidden**, does not
 alter the ordinary keyboard accessory row, and persists across launches.
 
+Build 826 repairs the hide transition. The storyboard's terminal-bottom outlet
+is weak and may disappear after its constraint is deactivated, so never switch
+between that old constraint and the terminal-to-Reader-bar constraint. Keep the
+latter active permanently and collapse the Reader bar's height to zero when it
+is hidden. After the synchronous native layout, explicitly resize, invalidate,
+redraw, and reposition hterm's cursor. Run both
+`node tests/terminal-touch-gesture.test.js` and
+`node tests/terminal-reader-bar.test.js` before signing.
+
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
 and disables kerning and ligatures so the visible glyphs, text cursor, and
@@ -147,6 +156,8 @@ resetting its filesystem removes or disconnects that state.
 11. In 1Unix Settings, turn **Show Dante Reader Bar** off. The strip must vanish
     and the terminal must fill its space immediately. Turn it on and confirm
     that the same controls return without changing **Keep Keyboard Hidden**.
+    Neither transition may blank the terminal or require a force-quit; Emacs
+    text and cursor must redraw at the new dimensions each time.
 
 Build 817 passed the physical-device menu check on 2026-09-02: **File ->
 Quit** exited Emacs, **Tr-Eng -> Norton** and **Tr-Rus -> Ilyushin** changed
@@ -168,3 +179,6 @@ and button behavior, while a vertical poem drag scrolls only the poem window.
 
 Build 825 additionally requires the native Reader strip setting to survive a
 force-quit and relaunch in both its shown and hidden states.
+
+Build 826 additionally requires repeated on/off transitions in one live Emacs
+session, with both keyboard-hidden and keyboard-visible layouts.
