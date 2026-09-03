@@ -52,8 +52,8 @@ Build 819 adds a persistent one-line Reader strip below the terminal. Unlike
 the ordinary extra-key row, it is part of the terminal layout rather than an
 `inputAccessoryView`, so hiding the software keyboard leaves it visible. When
 the keyboard opens, the strip moves above it. Its eight buttons send ordinary
-keyboard input and therefore bypass terminal mouse decoding: **<< < > >> Tr<
-Tr> 2nd Lang** send `K`, `k`, `j`, `J`, `[`, `]`, `b`, and `t`. Keep this
+keyboard input and therefore bypass terminal mouse decoding: **Tr< Tr> 2nd
+Lang << < > >>** send `[`, `]`, `b`, `t`, `K`, `k`, `j`, and `J`. Keep this
 contract synchronized with FirstPair Reader; the uppercase word commands skip
 common function words, while lowercase commands move one source word.
 The keyboard accessory row removes the old gesture arrow pad and retains the

@@ -554,17 +554,17 @@
     [barView addSubview:bar];
     [self.view addSubview:barView];
 
-    NSArray<NSString *> *labels = @[@"<<", @"<", @">", @">>", @"Tr<", @"Tr>", @"2nd", @"Lang"];
-    NSArray<NSString *> *keys = @[@"K", @"k", @"j", @"J", @"[", @"]", @"b", @"t"];
+    NSArray<NSString *> *labels = @[@"Tr<", @"Tr>", @"2nd", @"Lang", @"<<", @"<", @">", @">>"];
+    NSArray<NSString *> *keys = @[@"[", @"]", @"b", @"t", @"K", @"k", @"j", @"J"];
     NSArray<NSString *> *accessibility = @[
-        @"Previous significant word", @"Previous word", @"Next word", @"Next significant word",
-        @"Previous translation", @"Next translation", @"Toggle second translation", @"Change language"
+        @"Previous translation", @"Next translation", @"Toggle second translation", @"Change language",
+        @"Previous significant word", @"Previous word", @"Next word", @"Next significant word"
     ];
     NSMutableArray<BarButton *> *buttons = [NSMutableArray arrayWithCapacity:labels.count];
     for (NSUInteger index = 0; index < labels.count; index++) {
         BarButton *button = [[BarButton alloc] initWithFrame:CGRectZero];
         button.translatesAutoresizingMaskIntoConstraints = NO;
-        button.secondary = index >= 4;
+        button.secondary = index < 4;
         button.accessibilityLabel = accessibility[index];
         button.titleLabel.font = [UIFont systemFontOfSize:13 weight:UIFontWeightSemibold];
         [button setTitle:labels[index] forState:UIControlStateNormal];
