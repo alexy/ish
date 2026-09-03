@@ -78,6 +78,12 @@ window. Movement shorter than three quarters of a text line remains a tap, so
 narrow Reader buttons and TTY-menu rows keep their stable touch-down target.
 Run `node tests/terminal-touch-gesture.test.js` before the signed app build.
 
+Build 825 adds a separate **Show Dante Reader Bar** switch in 1Unix Settings.
+It defaults on and changes the terminal layout immediately: off hides the
+persistent native Reader strip and lets the terminal use its space; on restores
+the strip. This preference is independent of **Keep Keyboard Hidden**, does not
+alter the ordinary keyboard accessory row, and persists across launches.
+
 Bundled terminal fonts must finish loading before hterm's cell geometry is
 accepted. The terminal remeasures and redraws after the selected face loads,
 and disables kerning and ligatures so the visible glyphs, text cursor, and
@@ -138,6 +144,9 @@ resetting its filesystem removes or disconnects that state.
 10. Drag upward and downward through the poem. The poem window must scroll in
     the natural direction without looking up a word, activating a link, moving
     a pane divider, showing the keyboard, or scrolling the Dictionary pane.
+11. In 1Unix Settings, turn **Show Dante Reader Bar** off. The strip must vanish
+    and the terminal must fill its space immediately. Turn it on and confirm
+    that the same controls return without changing **Keep Keyboard Hidden**.
 
 Build 817 passed the physical-device menu check on 2026-09-02: **File ->
 Quit** exited Emacs, **Tr-Eng -> Norton** and **Tr-Rus -> Ilyushin** changed
@@ -156,3 +165,6 @@ restoring the keyboard; `>>` must skip intervening prepositions or forms of
 
 Build 824 additionally requires a short poem tap to retain all build 818 menu
 and button behavior, while a vertical poem drag scrolls only the poem window.
+
+Build 825 additionally requires the native Reader strip setting to survive a
+force-quit and relaunch in both its shown and hidden states.

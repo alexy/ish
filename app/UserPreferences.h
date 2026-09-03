@@ -56,6 +56,7 @@ extern NSString *const kThemeBackgroundColor;
 @property (nonatomic) Palette *palette;
 @property BOOL shouldDisableDimming;
 @property BOOL keepKeyboardHiddenInMouseMode;
+@property BOOL showDanteReaderBar;
 @property (null_resettable) NSString *fontFamily;
 @property (readonly) NSString *fontFamilyUserFacingName;
 @property (readonly) UIFont *approximateFont;

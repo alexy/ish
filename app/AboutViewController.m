@@ -19,6 +19,7 @@
 @property (weak, nonatomic) IBOutlet UITableViewCell *themeCell;
 @property (weak, nonatomic) IBOutlet UISwitch *disableDimmingSwitch;
 @property (weak, nonatomic) IBOutlet UISwitch *keepKeyboardHiddenInMouseModeSwitch;
+@property (weak, nonatomic) IBOutlet UISwitch *showDanteReaderBarSwitch;
 @property (weak, nonatomic) IBOutlet UITextField *launchCommandField;
 @property (weak, nonatomic) IBOutlet UITextField *bootCommandField;
 
@@ -57,7 +58,7 @@
                           [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
                           [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]];
 
-    [UserPreferences.shared observe:@[@"capsLockMapping", @"fontSize", @"keepKeyboardHiddenInMouseMode", @"launchCommand", @"bootCommand"]
+    [UserPreferences.shared observe:@[@"capsLockMapping", @"fontSize", @"keepKeyboardHiddenInMouseMode", @"showDanteReaderBar", @"launchCommand", @"bootCommand"]
                             options:0 owner:self usingBlock:^(typeof(self) self) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self _updateUI];
@@ -93,6 +94,7 @@
     NSAssert(NSThread.isMainThread, @"This method needs to be called on the main thread");
     self.disableDimmingSwitch.on = UserPreferences.shared.shouldDisableDimming;
     self.keepKeyboardHiddenInMouseModeSwitch.on = UserPreferences.shared.keepKeyboardHiddenInMouseMode;
+    self.showDanteReaderBarSwitch.on = UserPreferences.shared.showDanteReaderBar;
     self.launchCommandField.text = [UserPreferences.shared.launchCommand componentsJoinedByString:@" "];
     self.bootCommandField.text = [UserPreferences.shared.bootCommand componentsJoinedByString:@" "];
 
@@ -154,6 +156,10 @@
 
 - (IBAction)keepKeyboardHiddenInMouseModeChanged:(id)sender {
     UserPreferences.shared.keepKeyboardHiddenInMouseMode = self.keepKeyboardHiddenInMouseModeSwitch.on;
+}
+
+- (IBAction)showDanteReaderBarChanged:(id)sender {
+    UserPreferences.shared.showDanteReaderBar = self.showDanteReaderBarSwitch.on;
 }
 
 - (IBAction)textBoxSubmit:(id)sender {

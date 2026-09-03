@@ -304,6 +304,40 @@
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
+                            <tableViewSection footerTitle="Show or hide the persistent Dante translation and word controls below the terminal." id="Dnt-Bar-Scn">
+                                <cells>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" id="Dnt-Bar-Cell" userLabel="Show Dante Reader Bar">
+                                        <rect key="frame" x="0.0" y="620.5" width="320" height="43.5"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Dnt-Bar-Cell" id="Dnt-Bar-Content">
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" insetsLayoutMarginsFromSafeArea="NO" text="Show Dante Reader Bar" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Dnt-Bar-Label">
+                                                    <rect key="frame" x="16" y="11.5" width="194" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Dnt-Bar-Switch">
+                                                    <rect key="frame" x="255" y="6.5" width="51" height="31"/>
+                                                    <accessibility key="accessibilityConfiguration" label="Show Dante Reader Bar"/>
+                                                    <connections>
+                                                        <action selector="showDanteReaderBarChanged:" destination="yJz-O7-jlW" eventType="valueChanged" id="Dnt-Bar-Action"/>
+                                                    </connections>
+                                                </switch>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="Dnt-Bar-Switch" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="Dnt-Bar-Label" secondAttribute="trailing" constant="8" symbolic="YES" id="Dnt-Bar-C1"/>
+                                                <constraint firstItem="Dnt-Bar-Label" firstAttribute="leading" secondItem="Dnt-Bar-Content" secondAttribute="leadingMargin" id="Dnt-Bar-C2"/>
+                                                <constraint firstItem="Dnt-Bar-Switch" firstAttribute="centerY" secondItem="Dnt-Bar-Content" secondAttribute="centerY" id="Dnt-Bar-C3"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="Dnt-Bar-Switch" secondAttribute="trailing" id="Dnt-Bar-C4"/>
+                                                <constraint firstItem="Dnt-Bar-Label" firstAttribute="centerY" secondItem="Dnt-Bar-Content" secondAttribute="centerY" id="Dnt-Bar-C5"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </cells>
+                            </tableViewSection>
                             <tableViewSection headerTitle="Secret Advanced Debugging Options" footerTitle="Warning: Changing these can break everything! If that happens, there's a reset switch in the Settings app." id="d0T-DL-SuP">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" id="RKb-ed-FOs" userLabel="Init Command">
@@ -426,6 +460,7 @@
                         <outlet property="exportContainerCell" destination="OIE-9g-Btx" id="qxo-l5-0Mq"/>
                         <outlet property="launchCommandField" destination="gDx-hv-hhV" id="RQn-gk-Dx8"/>
                         <outlet property="keepKeyboardHiddenInMouseModeSwitch" destination="Skb-hd-Mse" id="Okb-hd-Mse"/>
+                        <outlet property="showDanteReaderBarSwitch" destination="Dnt-Bar-Switch" id="Dnt-Bar-Outlet"/>
                         <outlet property="openDiscord" destination="K5r-jy-Dzl" id="b4l-Vr-6l8"/>
                         <outlet property="openFediverse" destination="bge-GA-6p8" id="ghM-X8-itm"/>
                         <outlet property="openGithub" destination="F4i-eC-hQ6" id="66M-sQ-RJR"/>

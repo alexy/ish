@@ -23,6 +23,7 @@ static NSString *const kPragmataFontMigrationKey = @"1Unix Pragmata Font v1";
 static NSString *const kPreferenceThemeKey = @"ModernTheme";
 static NSString *const kPreferenceDisableDimmingKey = @"Disable Dimming";
 static NSString *const kPreferenceKeepKeyboardHiddenInMouseModeKey = @"Keep Keyboard Hidden in Mouse Mode";
+static NSString *const kPreferenceShowDanteReaderBarKey = @"Show Dante Reader Bar";
 NSString *const kPreferenceLaunchCommandKey = @"Init Command";
 NSString *const kPreferenceBootCommandKey = @"Boot Command";
 static NSString *const kPreferenceCursorStyleKey = @"Cursor Style";
@@ -170,6 +171,7 @@ bool (*remove_user_default)(const char *name);
             kPreferenceOverrideControlSpaceKey: @(NO),
             kPreferenceDisableDimmingKey: @(NO),
             kPreferenceKeepKeyboardHiddenInMouseModeKey: @(NO),
+            kPreferenceShowDanteReaderBarKey: @(YES),
             kPreferenceLaunchCommandKey: @[@"/bin/login", @"-f", @"root"],
             kPreferenceBootCommandKey: @[@"/sbin/init"],
             kPreferenceBlinkCursorKey: @(NO),
@@ -209,6 +211,7 @@ bool (*remove_user_default)(const char *name);
             @"font_size": kPreferenceFontSizeKey,
             @"disable_dimming": kPreferenceDisableDimmingKey,
             @"keep_keyboard_hidden_in_mouse_mode": kPreferenceKeepKeyboardHiddenInMouseModeKey,
+            @"show_dante_reader_bar": kPreferenceShowDanteReaderBarKey,
             @"launch_command": kPreferenceLaunchCommandKey,
             @"boot_command": kPreferenceBootCommandKey,
             @"cursor_style": kPreferenceCursorStyleKey,
@@ -235,6 +238,7 @@ bool (*remove_user_default)(const char *name);
             kPreferenceFontSizeKey: property(fontSize),
             kPreferenceDisableDimmingKey: property(shouldDisableDimming),
             kPreferenceKeepKeyboardHiddenInMouseModeKey: property(keepKeyboardHiddenInMouseMode),
+            kPreferenceShowDanteReaderBarKey: property(showDanteReaderBar),
             kPreferenceLaunchCommandKey: property(launchCommand),
             kPreferenceBootCommandKey: property(bootCommand),
             kPreferenceCursorStyleKey: property(cursorStyle),
@@ -445,6 +449,19 @@ bool (*remove_user_default)(const char *name);
 }
 
 - (BOOL)validateKeepKeyboardHiddenInMouseMode:(id *)value error:(NSError **)error {
+    return [*value isKindOfClass:NSNumber.class];
+}
+
+// MARK: showDanteReaderBar
+- (BOOL)showDanteReaderBar {
+    return [_defaults boolForKey:kPreferenceShowDanteReaderBarKey];
+}
+
+- (void)setShowDanteReaderBar:(BOOL)showDanteReaderBar {
+    [_defaults setBool:showDanteReaderBar forKey:kPreferenceShowDanteReaderBarKey];
+}
+
+- (BOOL)validateShowDanteReaderBar:(id *)value error:(NSError **)error {
     return [*value isKindOfClass:NSNumber.class];
 }
 

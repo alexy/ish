@@ -40,6 +40,7 @@
 @property UIStackView *readerBar;
 @property NSLayoutConstraint *readerBarBottom;
 @property NSLayoutConstraint *readerBarHeight;
+@property NSLayoutConstraint *readerTermBottom;
 
 @property (weak, nonatomic) IBOutlet UIInputView *barView;
 @property (weak, nonatomic) IBOutlet UIStackView *bar;
@@ -142,7 +143,7 @@
             [self setNeedsStatusBarAppearanceUpdate];
         });
     }];
-    [UserPreferences.shared observe:@[@"colorScheme", @"theme", @"hideExtraKeysWithExternalKeyboard"]
+    [UserPreferences.shared observe:@[@"colorScheme", @"theme", @"hideExtraKeysWithExternalKeyboard", @"showDanteReaderBar"]
                             options:0 owner:self usingBlock:^(typeof(self) self) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self _updateStyleFromPreferences:YES];
@@ -334,6 +335,16 @@
             self.ignoreKeyboardMotion = NO;
         });
     }
+    BOOL showReaderBar = UserPreferences.shared.showDanteReaderBar;
+    self.readerBarView.hidden = !showReaderBar;
+    if (showReaderBar) {
+        self.bottomConstraint.active = NO;
+        self.readerTermBottom.active = YES;
+    } else {
+        self.readerTermBottom.active = NO;
+        self.bottomConstraint.active = YES;
+    }
+    [self.view setNeedsLayout];
 }
 - (void)_updateStyleAnimated {
     [self _updateStyleFromPreferences:YES];
@@ -589,6 +600,7 @@
     self.readerBarButtons = buttons;
     self.readerBarBottom = [barView.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor];
     self.readerBarHeight = [barView.heightAnchor constraintEqualToConstant:42 + self.view.safeAreaInsets.bottom];
+    self.readerTermBottom = [self.termView.bottomAnchor constraintEqualToAnchor:barView.topAnchor];
     [NSLayoutConstraint activateConstraints:@[
         [barView.leadingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.leadingAnchor],
         [barView.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor],
@@ -598,7 +610,7 @@
         [bar.trailingAnchor constraintEqualToAnchor:barView.trailingAnchor constant:-6],
         [bar.topAnchor constraintEqualToAnchor:barView.topAnchor constant:4],
         [bar.heightAnchor constraintEqualToConstant:34],
-        [self.termView.bottomAnchor constraintEqualToAnchor:barView.topAnchor]
+        self.readerTermBottom
     ]];
     self.barButtons = [self.barButtons arrayByAddingObjectsFromArray:buttons];
 }
