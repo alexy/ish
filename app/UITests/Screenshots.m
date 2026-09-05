@@ -60,13 +60,29 @@
     [self waitForExpectations:@[[self expectationForPredicate:pred evaluatedWithObject:nil handler:nil]] timeout:timeout];
 }
 
+- (void)focusTerminal {
+    // 1Unix only takes keyboard focus on an explicit tap (or two-finger tap in mouse mode).
+    XCUIElement *terminal = self.app.webViews.firstMatch;
+    if (terminal.exists) {
+        [terminal tap];
+        [NSThread sleepForTimeInterval:0.5];
+    }
+}
+
 - (void)runCommand:(NSString *)command timeout:(NSUInteger)timeout {
+    [self focusTerminal];
     [self.app typeText:[NSString stringWithFormat:@"%@\n", command]];
     [self waitForPromptWithTimeout:timeout];
 }
 
 - (void)chooseTheme:(NSString *)name {
     [self.app.buttons[@"Settings"] tap];
+    // 1Unix's settings may not carry the Appearance table; keep the app's own theme then.
+    if (![self.app.tables.staticTexts[@"Appearance"] waitForExistenceWithTimeout:3]) {
+        XCUIElement *done = self.app.navigationBars.buttons[@"Done"];
+        if ([done waitForExistenceWithTimeout:2]) [done tap];
+        return;
+    }
     [self.app.tables.staticTexts[@"Appearance"] tap];
     [self.app.tables.staticTexts[@"Theme"] tap];
     [self.app.tables.staticTexts[name] tap];
@@ -108,6 +124,45 @@
     [self.app typeText:@"emacs\n"];
     [self waitForTerminalText:@"Welcome to GNU Emacs" timeout:30];
     [self snapshot:@"emacs" order:4];
+}
+
+- (void)hideKeyboardIfPossible {
+    XCUIElement *button = self.app.buttons[@"Hide Keyboard"];
+    if ([button waitForExistenceWithTimeout:2]) {
+        [button tap];
+        return;
+    }
+    // iPad keyboards carry their own dismiss key instead of an accessory button.
+    XCUIElement *dismiss = self.app.keyboards.buttons[@"Hide keyboard"];
+    if ([dismiss waitForExistenceWithTimeout:2]) {
+        [dismiss tap];
+    }
+}
+
+- (void)testDanteReader {
+    // The First Pair Emacs reader on Dante, as shipped: install Emacs, fetch the
+    // public bundle, open Canto I with the English translation, then the dictionary.
+    [self runCommand:@"apk add emacs-nox curl unzip" timeout:1800];
+    [self runCommand:@"curl -sL https://firstpair.org/dante-commedia/emacs/ -o dante.zip && unzip -qo dante.zip && ls" timeout:600];
+    [self runCommand:@"printf '(progn (load (expand-file-name \"Dante Commedia Emacs/init.el\")) (firstpair-read) (with-current-buffer firstpair-reader-buffer (Info-goto-node \"(dante-commedia)Inferno \\\\u2014 Canto 1\") (goto-char (point-min)) (forward-line 5)))' > open-dante.el" timeout:10];
+    [self focusTerminal];
+    [self.app typeText:@"TERM=xterm-256color emacs -nw -Q -l open-dante.el\n"];
+    [self waitForTerminalText:@"Nel mezzo del cammin" timeout:300];
+    [self hideKeyboardIfPossible];
+    [self snapshot:@"dante" order:5];
+    [self focusTerminal];
+    [self.app typeText:@"jjj"];
+    [self waitForTerminalText:@"cammin" timeout:60];
+    [self snapshot:@"dantedictionary" order:6];
+}
+
+- (void)testHoldForScreenshots {
+    // The app boots into the Reader through its Init Command preference; this
+    // test only hides the keyboard and keeps the app in the foreground while
+    // `xcrun simctl io <device> screenshot` captures the screen from outside.
+    [NSThread sleepForTimeInterval:90];
+    [self hideKeyboardIfPossible];
+    [NSThread sleepForTimeInterval:420];
 }
 
 @end

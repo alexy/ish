@@ -176,6 +176,33 @@ logs locally from the archive's `dSYMs/` instead. Archiving into Xcode's
 Archives folder also lists the build in Organizer. Xcode must have the
 developer Apple Account signed in (Settings > Accounts).
 
+## App Store Screenshots
+
+Simulator captures of the Reader on Dante, taken from outside the app so no
+test has to read hterm's accessibility tree. The app boots straight into
+Emacs through its **Init Command** preference, imported as an XML plist
+(`defaults write` cannot parse Lisp parentheses):
+
+```sh
+# Init Command: /bin/sh -lc 'cd /root; apk add -q emacs-nox curl unzip;
+#   curl -sL https://firstpair.org/dante-commedia/emacs/ -o dante.zip; unzip -qo dante.zip;
+#   printf %s "(progn (load ...init.el) (firstpair-read) ...)" > open-dante.el;
+#   TERM=xterm-256color exec emacs -nw -Q -l open-dante.el'
+xcrun simctl spawn "$SIM" defaults import net.hurz.danteish prefs.plist   # also Keep Keyboard Hidden = YES
+xcrun simctl ui "$SIM" appearance dark
+xcrun simctl status_bar "$SIM" override --time 9:41 --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4
+xcrun simctl launch "$SIM" net.hurz.danteish      # may not return; the app is running regardless
+xcrun simctl io "$SIM" screenshot canto.png       # after Emacs has drawn
+```
+
+`Screenshots/testHoldForScreenshots` (skipped in the test plan) launches the
+app through the test runner, taps Hide Keyboard on iPhone, and holds the
+foreground for seven minutes while `simctl io … screenshot` captures; the
+Simulator's Connect Hardware Keyboard setting must stay off, or launches
+stall. Required sizes: iPhone 17 Pro Max (1320×2868) and a 13-inch iPad
+(2064×2752 or 2048×2732). The 2026-09-05 set lives in
+`~/icloud/1unix-screenshots`.
+
 ## Phone Check
 
 1. Open Dante in Emacs with terminal mouse mode enabled.
