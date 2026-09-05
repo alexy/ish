@@ -115,7 +115,7 @@ brew install meson ninja llvm lld
 FIRSTPAIR_REQUIRE_PRIVATE_FONTS=1 \
 PATH="/opt/homebrew/opt/lld/bin:$PATH" \
   xcodebuild -project iSH.xcodeproj \
-  -scheme iSH \
+  -scheme 1Unix \
   -configuration Debug-ApplePleaseFixFB19282108 \
   -destination 'generic/platform=iOS' \
   -allowProvisioningUpdates \
@@ -123,7 +123,7 @@ PATH="/opt/homebrew/opt/lld/bin:$PATH" \
   build
 ```
 
-Install the resulting `iSH.app` with Xcode or `xcrun devicectl`. A free
+Install the resulting `1Unix.app` with Xcode or `xcrun devicectl`. A free
 Personal Team profile lasts seven days, so repeat the signed build and install
 before or after its expiration. The first installation may require trusting
 the developer under Settings > General > VPN & Device Management.
@@ -132,6 +132,49 @@ Installing a new build over the existing `net.hurz.danteish` app preserves its
 container, including installed Alpine packages, books, home-directory files,
 and `.zshrc`. Deleting the app, changing its bundle identifier or App Group, or
 resetting its filesystem removes or disconnects that state.
+
+Build 827 was the first archive signed under the Apple Developer Program
+(team `8UJ4WU7CE9`, the same team the Personal builds used, so the App ID,
+App Group, and installed container carry over). PragmataPro is embedded from
+`~/Library/Application Support/FirstPair/private-fonts` and the build fails
+without it (`FIRSTPAIR_REQUIRE_PRIVATE_FONTS=1`); the family is licensed to
+the author and never committed. The App Store Connect record **1Unix**
+(bundle `net.hurz.danteish`) must exist before an upload; the website creates
+it, Xcode's sheet and `xcodebuild` cannot.
+
+Build 828 renames the product: `PRODUCT_NAME` is `1Unix`, the schemes are
+`1Unix` and `1Unix+Linux`, the archive and app are `1Unix.app`, and CI,
+`upload-build`, and fastlane use those names, the `net.hurz.danteish`
+identifier, and team `8UJ4WU7CE9`. The Xcode target and project file keep
+the name `iSH` so upstream merges stay small.
+
+## TestFlight
+
+```sh
+cd ~/src/ish
+agvtool new-version -all <build>        # then restore app/FileProvider/Info.plist and
+                                        # app/UITests/Info.plist: agvtool replaces their
+                                        # $(CURRENT_PROJECT_VERSION) placeholders with a literal
+FIRSTPAIR_REQUIRE_PRIVATE_FONTS=1 \
+PATH="/opt/homebrew/opt/lld/bin:$PATH" \
+  xcodebuild -project iSH.xcodeproj -scheme 1Unix -configuration Release \
+  -destination 'generic/platform=iOS' \
+  -archivePath "$HOME/Library/Developer/Xcode/Archives/$(date +%Y-%m-%d)/1Unix <build>.xcarchive" \
+  -allowProvisioningUpdates COMPILER_INDEX_STORE_ENABLE=NO archive
+xcodebuild -exportArchive \
+  -archivePath "$HOME/Library/Developer/Xcode/Archives/$(date +%Y-%m-%d)/1Unix <build>.xcarchive" \
+  -exportOptionsPlist app/ExportOptions.plist -exportPath /tmp/1unix-export \
+  -allowProvisioningUpdates
+```
+
+`app/ExportOptions.plist` uploads to App Store Connect with automatic
+signing and `uploadSymbols` off: with Xcode 26.6 the packaging step fails
+with the bare message "Copy failed" whenever it tries to copy this
+archive's dSYMs (they are valid and match the binary's UUID; a development
+export and a store export without symbols both succeed). Symbolicate crash
+logs locally from the archive's `dSYMs/` instead. Archiving into Xcode's
+Archives folder also lists the build in Organizer. Xcode must have the
+developer Apple Account signed in (Settings > Accounts).
 
 ## Phone Check
 

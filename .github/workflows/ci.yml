@@ -54,7 +54,7 @@ jobs:
         run: deps/clone-linux.sh
       - name: Build
         if: matrix.kernel == 'ish'
-        run: xcodebuild -project iSH.xcodeproj -scheme iSH -arch arm64 -sdk iphoneos CODE_SIGNING_ALLOWED=NO
+        run: xcodebuild -project iSH.xcodeproj -scheme 1Unix -arch arm64 -sdk iphoneos CODE_SIGNING_ALLOWED=NO
       - name: Build
         if: matrix.kernel == 'linux'
-        run: xcodebuild -project iSH.xcodeproj -scheme iSH+Linux -arch x86_64 -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO
+        run: xcodebuild -project iSH.xcodeproj -scheme 1Unix+Linux -arch x86_64 -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO

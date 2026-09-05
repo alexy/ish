@@ -40,8 +40,8 @@ jobs:
         with:
           name: App
           path: |
-            iSH.ipa
-            iSH.app.dSYM.zip
+            1Unix.ipa
+            1Unix.app.dSYM.zip
 
       - uses: actions/upload-artifact@v4
         if: always()

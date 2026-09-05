@@ -27,7 +27,7 @@ lane :build do |options|
     config = "app/#{config}.xcconfig" if config
     build_app(
       project: "iSH.xcodeproj",
-      scheme: "iSH",
+      scheme: "1Unix",
       xcconfig: config,
       xcargs: "DEVELOPMENT_TEAM=#{CredentialsManager::AppfileConfig.try_fetch_value(:team_id)}",
       output_name: options[:output],
@@ -61,7 +61,7 @@ lane :upload_build do
     build
     puts testflight_changelog
     upload_to_testflight(
-        ipa: "iSH.ipa",
+        ipa: "1Unix.ipa",
         changelog: testflight_changelog,
         wait_processing_interval: 300, # the processing is expected to take a total of 5 hours, so don't logspam too much
         distribute_external: true,
@@ -72,13 +72,13 @@ lane :upload_build do
     sh "git pull --no-rebase"
     push_to_git_remote
     set_github_release(
-        repository_name: "ish-app/ish",
+        repository_name: "alexy/ish",
         tag_name: tag,
         commitish: nil, # the tag better exist
         name: "Build #{build_number}",
         description: changelog,
         is_prerelease: true,
-        upload_assets: ["iSH.ipa", "iSH.app.dSYM.zip"],
+        upload_assets: ["1Unix.ipa", "1Unix.app.dSYM.zip"],
         api_token: ENV["GH_TOKEN"],
     )
 end
